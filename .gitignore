@@ -1,0 +1,21 @@
+# Bỏ qua các thư mục checkpoints và runs chỉ trong thư mục train_data
+train_data/checkpoints/
+train_data/runs/
+
+# Bỏ qua tất cả các file .pt trong thư mục train_data
+train_data/*.pt
+
+# Bỏ qua các tệp .pt ở bất kỳ đâu trong dự án (nếu có)
+*.pt
+
+# Bỏ qua các thư mục không cần thiết nằm ngoài thư mục train_data
+__pycache__/
+.vscode/
+.idea/
+
+data/phan-loai-rac-2
+data/phan-loai-rac-old
+
+train_data/connect_webcam/runs
+
+train_data/connect_webcam/*.pt
