@@ -9,6 +9,8 @@ train_data/*.pt
 *.pt
 
 # Bỏ qua các thư mục không cần thiết nằm ngoài thư mục train_data
+train_data/garbage_classification/__pycache__/
+
 __pycache__/
 .vscode/
 .idea/
