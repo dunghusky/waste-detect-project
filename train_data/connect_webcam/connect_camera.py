@@ -55,7 +55,7 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     return frame
 
 
-def run_detection():
+def run_detection(stream_url):
     """
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
     """
@@ -70,7 +70,8 @@ def run_detection():
     lables_annatator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
 
     # 2. Mở webcam và thiết lập các thông số
-    cap = cv2.VideoCapture(1)
+    # cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(stream_url)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
@@ -99,6 +100,7 @@ def run_detection():
         # Nhấn phím ESC (mã ASCII 27) để thoát khỏi cửa sổ
         if cv2.waitKey(30) == 27:
             break
+    return waste_label
 
 
 # Chạy chương trình
