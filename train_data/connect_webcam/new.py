@@ -5,7 +5,7 @@ import argparse
 from ultralytics import YOLO
 import supervision as sv
 
-from train_data.connect_webcam import map_yolo_to_label
+from connect_webcam import map_yolo_to_label
 
 
 def parse_args() -> argparse.Namespace:
@@ -96,7 +96,6 @@ def run_detection():
         if cv2.waitKey(30) == 27:
             break
 
-
 def main():
     args = parse_args()
     # # Thay đổi đường dẫn source thành địa chỉ RTMP của bạn
@@ -150,4 +149,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_detection()
