@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from database.connect_db._database_mysql import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from database.router import _user
 from database.models import (
@@ -12,11 +13,23 @@ from database.models import (
     VideoXuLy,
 )
 
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(_user.router)
 
 Base.metadata.create_all(bind=engine)  # Tạo lại các bảng mới nhất
+
 
 # Khởi tạo các router cho API
 # app.include_router(...)

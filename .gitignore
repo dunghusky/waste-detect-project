@@ -21,3 +21,5 @@ data/phan-loai-rac-old
 train_data/connect_webcam/runs
 
 train_data/connect_webcam/*.pt
+
+.env
