@@ -28,17 +28,11 @@ async def login(user: Login, db: Session = Depends(get_db)):
         # Kiểm tra nếu không tìm thấy user
         if user_in_db is None:
             # Trả về lỗi nếu username hoặc password sai
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Tên đăng nhập hoặc mật khẩu không đúng",
-            )
+            return JSONResponse({"status": 400, "message": "Tên đăng nhập hoặc mật khẩu không đúng!"})
 
-        response = JSONResponse({"status": 200, "message": "Đăng nhập thành công"})
+        response = JSONResponse({"status": 200, "message": "Đăng nhập thành công!"})
 
         return response
     except Exception as e:
         # Trả về lỗi hệ thống
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Lỗi hệ thống: {e}",
-        )
+        return JSONResponse({"status": 500, "message": "Lỗi hệ thống!"})
