@@ -1,3 +1,4 @@
+import asyncio
 import cv2
 import numpy as np
 import argparse
@@ -5,7 +6,7 @@ import argparse
 from ultralytics import YOLO
 import supervision as sv
 
-import map_yolo_to_label
+from connect_webcam import map_yolo_to_label
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,7 +56,7 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     return frame
 
 
-def run_detection(stream_url):
+def run_detection_1(stream_url):
     """
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
     """
@@ -64,7 +65,7 @@ def run_detection(stream_url):
 
     # 1. Khởi tạo mô hình YOLO và BoxAnnotator
     model = YOLO(
-        "E:/HocTap/graduation_project/waste-detect-project/train_data/checkpoints/waste_detection_v2/weights/best.pt"
+        "./checkpoints/waste_detection_v2/weights/best.pt"
     )
     box_annatator = sv.BoxAnnotator(thickness=2)
     lables_annatator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
@@ -101,6 +102,65 @@ def run_detection(stream_url):
         if cv2.waitKey(30) == 27:
             break
     return waste_label
+
+
+async def run_detection(stream_url, websocket=None):
+    """
+    Hàm chính để thực hiện nhận diện và xử lý kết quả.
+    Hỗ trợ:
+    - Trả về nhãn cho phần cứng.
+    - Stream video đã xử lý (qua WebSocket nếu được cung cấp).
+    """
+    args = parse_args()
+    frame_width, frame_height = args.webcam_resolutions
+
+    # 1. Khởi tạo mô hình YOLO và BoxAnnotator
+    model = YOLO("./checkpoints/waste_detection_v2/weights/best.pt")
+    box_annatator = sv.BoxAnnotator(thickness=2)
+    lables_annatator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
+
+    # 2. Mở luồng video
+    cap = cv2.VideoCapture(stream_url)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
+
+    # 3. Vòng lặp chính để xử lý từng khung hình
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            print("Không nhận được khung hình (frame). Kết nối có thể đã bị ngắt.")
+            break
+
+        detections = detect_objects(frame, model)
+
+        for class_name, confidence in zip(
+            detections["class_name"], detections.confidence
+        ):
+            waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+
+            if waste_label != -1:
+                print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                # Gửi nhãn qua WebSocket (nếu có client kết nối)
+                if websocket:
+                    await websocket.send_json({"label": waste_label})
+
+        # Vẽ bounding boxes lên khung hình
+        frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
+
+        # Gửi khung hình qua WebSocket (nếu có client kết nối)
+        if websocket:
+            _, buffer = cv2.imencode(".jpg", frame)
+            await websocket.send_bytes(buffer.tobytes())
+
+        # Hiển thị khung hình (cho mục đích debug hoặc kiểm tra)
+        cv2.imshow("YOLOv8 - RTMP Stream", frame)
+
+        # Nhấn ESC để thoát
+        if cv2.waitKey(30) == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 # Chạy chương trình

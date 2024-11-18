@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Stream</title>
+</head>
+<body>
+    <h1>Luồng Video Nhận Diện</h1>
+    <canvas id="videoCanvas" width="640" height="480"></canvas>
+    <div id="labels"></div>
+
+    <script>
+        const canvas = document.getElementById('videoCanvas');
+        const ctx = canvas.getContext('2d');
+        const labelsDiv = document.getElementById('labels');
+
+        const ws = new WebSocket("ws://127.0.0.1:8000/detect-stream?stream_url=rtmp://82.180.160.47:1888/live");
+
+        ws.binaryType = "arraybuffer";
+
+        ws.onmessage = function(event) {
+            if (typeof event.data === "string") {
+                // Nhãn từ JSON
+                const jsonData = JSON.parse(event.data);
+                if (jsonData.label !== undefined) {
+                    labelsDiv.innerHTML = `Label: ${jsonData.label}`;
+                }
+            } else {
+                // Frame video từ Binary
+                const blob = new Blob([event.data], { type: 'image/jpeg' });
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                img.src = URL.createObjectURL(blob);
+            }
+        };
+    </script>
+</body>
+</html>
