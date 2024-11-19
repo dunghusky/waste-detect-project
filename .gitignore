@@ -1,5 +1,6 @@
 # Bỏ qua các thư mục checkpoints và runs chỉ trong thư mục train_data
 train_data/checkpoints/
+model/checkpoints
 train_data/runs/
 
 # Bỏ qua tất cả các file .pt trong thư mục train_data
