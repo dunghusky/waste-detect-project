@@ -3,7 +3,7 @@ from database.connect_db._database_mysql import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from database.router import _user
-from train_data import _detect
+from model.router import _detect_object
 from database.models import (
     Camera,
     ChiTietXuLyRac,
@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(_user.router)
-app.include_router(_detect.router)
+app.include_router(_detect_object.router)
 
 Base.metadata.create_all(bind=engine)  # Tạo lại các bảng mới nhất
 
