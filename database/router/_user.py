@@ -4,7 +4,6 @@ from database.models.User import User
 from database.schemas._user import Login
 from database.connect_db._database_mysql import SessionLocal
 from database.dependencies.dependencies import get_db
-from datetime import datetime, timedelta
 from fastapi.responses import JSONResponse
 
 from datetime import datetime
