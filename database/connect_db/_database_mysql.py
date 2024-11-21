@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from _config import settings
+from config._config import settings
 
 # Chuỗi kết nối tới MySQL
 SQLALCHEMY_DATABASE_URL = settings.database_url

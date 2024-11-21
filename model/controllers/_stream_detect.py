@@ -1,3 +1,4 @@
+from datetime import datetime
 import cv2
 import requests
 import argparse
@@ -6,6 +7,8 @@ from ultralytics import YOLO
 import supervision as sv
 
 from model.train import map_yolo_to_label
+from manage.StateManager import state
+from config import _create_file
 
 
 def parse_args() -> argparse.Namespace:
@@ -99,6 +102,11 @@ def generate_stream(stream_url):
     args = parse_args()
     frame_width, frame_height = args.webcam_resolutions
 
+    # Tạo tên file video với timestamp
+    state.output_file = _create_file.create_video()
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video_writer = cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
+
     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
     model, box_annatator, lables_annatator  = initialize_yolo_and_annotators("./model/checkpoints/waste_detection_v2/weights/best.pt")
 
@@ -132,6 +140,8 @@ def generate_stream(stream_url):
         # Vẽ kết quả lên khung hình
         frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
 
+        state.video_writer.write(frame)
+
         # Mã hóa khung hình sang JPEG
         _, buffer = cv2.imencode(".jpg", frame)
         frame_bytes = buffer.tobytes()
@@ -140,8 +150,14 @@ def generate_stream(stream_url):
         yield (
             b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
         )
-
+        if (
+            cv2.waitKey(1) == 27 or state.terminate_flag
+        ):  # Exit when ESC key is pressed or terminate flag is set
+            break
     cap.release()
+    video_writer.release()
+    print(f"Stream đã dừng. Video đã được lưu tại {state.output_file}")
+
 
 # ----------------------------------------------------------------------------#
 
