@@ -3,7 +3,7 @@ from database.connect_db._database_mysql import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from database.router import _user
-from model.router import _detect_object
+from yolo_model.router import _detect_object
 from database.models import (
     Camera,
     ChiTietXuLyRac,
