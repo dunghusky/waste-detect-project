@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-import _constants
+from config import _constants
 
 
 def create_video():
