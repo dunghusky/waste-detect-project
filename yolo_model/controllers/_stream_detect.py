@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 import cv2
 import requests
 import argparse
@@ -9,8 +10,8 @@ import supervision as sv
 
 from yolo_model.train import map_yolo_to_label
 from yolo_model.manage.StateManager import state
+from yolo_model.manage.WebcamStream import WebcamStream
 from config import _create_file
-
 
 def parse_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description="Yolov8 live camera")
@@ -73,14 +74,22 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     """
     Mở luồng video từ URL và thiết lập độ phân giải.
     """
-    cap = cv2.VideoCapture(stream_url)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
+    webcam_stream = WebcamStream(stream_id = stream_url)
+    webcam_stream.start()
 
-    if not cap.isOpened():
-        raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
+    actual_width = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    actual_height = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    print(
+        f"Kích thước thực tế của luồng video: {int(actual_width)}x{int(actual_height)}"
+    )
+    # cap = cv2.VideoCapture()
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
-    return cap
+    # if not cap.isOpened():
+    #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
+
+    return webcam_stream
 # ----------------------------------------------------------------------------#
 
 def send_to_hardware_api(waste_label):
@@ -109,7 +118,7 @@ def generate_stream(stream_url):
     state.set_video_writer(
         cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
     )
-    
+
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
@@ -122,16 +131,16 @@ def generate_stream(stream_url):
     # Mở luồng video
     cap = initialize_video_stream(stream_url, frame_width, frame_height)
 
-    if not cap.isOpened():
-        raise ValueError(f"Không thể mở stream từ URL: {stream_url}")
-
     try:
         while not state.terminate_flag:
             if state.terminate_flag:  # Kiểm tra cờ dừng
                 break
 
-            ret, frame = cap.read()
-            if not ret:
+            start_time = time.time()
+
+            frame = cap.read()
+
+            if frame is None:
                 print("Không nhận được khung hình.")
                 break
 
@@ -149,6 +158,10 @@ def generate_stream(stream_url):
 
             # Vẽ kết quả lên khung hình
             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
+            end_time = time.time()
+
+            latency = end_time - start_time
+            print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
             if video_writer is not None:
@@ -168,7 +181,7 @@ def generate_stream(stream_url):
                 break
 
     finally:
-        cap.release()
+        cap.stop()
         video_writer = state.get_video_writer()
         if video_writer:
             video_writer.release()
@@ -182,8 +195,7 @@ def generate_stream(stream_url):
 #     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
 #     """
 #     args = parse_args()
-#     frame_width = 600
-#     frame_height = 800 #args.webcam_resolutions
+#     frame_width, frame_height = args.webcam_resolutions
 
 #     # Tạo tên file video với timestamp
 #     state.output_file = _create_file.create_video()
@@ -191,12 +203,15 @@ def generate_stream(stream_url):
 #     state.set_video_writer(
 #         cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
 #     )
+
 #     video_writer = state.get_video_writer()
 #     if not video_writer or not video_writer.isOpened():
 #         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
 
 #     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
-#     model, box_annatator, lables_annatator  = initialize_yolo_and_annotators("./yolo_model/checkpoints/waste_detection_v2/weights/best.pt")
+#     model, box_annatator, lables_annatator = initialize_yolo_and_annotators(
+#         "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+#     )
 
 #     # Mở luồng video
 #     cap = initialize_video_stream(stream_url, frame_width, frame_height)
@@ -204,52 +219,55 @@ def generate_stream(stream_url):
 #     if not cap.isOpened():
 #         raise ValueError(f"Không thể mở stream từ URL: {stream_url}")
 
-#     while True:
-#         if state.terminate_flag:  # Kiểm tra cờ dừng
-#             break
+#     try:
+#         while not state.terminate_flag:
+#             if state.terminate_flag:  # Kiểm tra cờ dừng
+#                 break
 
-#         ret, frame = cap.read()
-#         if not ret:
-#             print("Không nhận được khung hình.")
-#             break
+#             ret, frame = cap.read()
+#             if not ret:
+#                 print("Không nhận được khung hình.")
+#                 break
 
-#         # Xử lý nhận diện với YOLO
-#         detections = detect_objects(frame, model)
+#             # Xử lý nhận diện với YOLO
+#             detections = detect_objects(frame, model)
 
-#         # Gửi nhãn đến phần cứng qua API
-#         # for class_name, confidence in zip(
-#         #     detections["class_name"], detections.confidence
-#         # ):
-#         #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
-#         #     if waste_label != -1:
-#         #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
-#         #         send_to_hardware_api(waste_label)
+#             # Gửi nhãn đến phần cứng qua API
+#             # for class_name, confidence in zip(
+#             #     detections["class_name"], detections.confidence
+#             # ):
+#             #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+#             #     if waste_label != -1:
+#             #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+#             #         send_to_hardware_api(waste_label)
 
-#         # Vẽ kết quả lên khung hình
-#         frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
+#             # Vẽ kết quả lên khung hình
+#             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
 
+#             video_writer = state.get_video_writer()
+#             if video_writer is not None:
+#                 video_writer.write(frame)
+
+#             # Mã hóa khung hình sang JPEG
+#             _, buffer = cv2.imencode(".jpg", frame)
+#             frame_bytes = buffer.tobytes()
+
+#             # Truyền dữ liệu MJPEG
+#             yield (
+#                 b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+#             )
+#             if (
+#                 cv2.waitKey(1) == 27 or state.terminate_flag
+#             ):  # Exit when ESC key is pressed or terminate flag is set
+#                 break
+
+#     finally:
+#         cap.release()
 #         video_writer = state.get_video_writer()
-#         if video_writer is not None:
-#             video_writer.write(frame)
-
-#         # Mã hóa khung hình sang JPEG
-#         _, buffer = cv2.imencode(".jpg", frame)
-#         frame_bytes = buffer.tobytes()
-
-#         # Truyền dữ liệu MJPEG
-#         yield (
-#             b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
-#         )
-#         if (
-#             cv2.waitKey(1) == 27 or state.terminate_flag
-#         ):  # Exit when ESC key is pressed or terminate flag is set
-#             break
-
-#     cap.release()
-#     video_writer = state.get_video_writer()
-#     if video_writer is not None:
-#         video_writer.release()
-#     print(f"Stream đã dừng. Video đã được lưu tại {state.output_file}")
+#         if video_writer:
+#             video_writer.release()
+#         state.set_video_writer(None)
+#         state.completed_event.set()  # Báo hiệu đã hoàn tất
 
 
 # # ----------------------------------------------------------------------------#

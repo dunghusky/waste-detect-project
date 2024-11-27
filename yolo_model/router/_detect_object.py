@@ -17,7 +17,7 @@ router = APIRouter(
 def video_feed():
     try:
         # state.reset()
-        stream_url = "rtmp://82.180.160.47:1888/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
+        stream_url = "rtmp://45.90.223.138:1256/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
         return StreamingResponse(
             _stream_detect.generate_stream(stream_url),
             media_type="multipart/x-mixed-replace; boundary=frame",
@@ -34,6 +34,10 @@ def stop():
 
         # Đợi `generate_stream` hoàn tất
         state.completed_event.wait()  # Chờ tín hiệu từ generate_stream
+        if not state.completed_event.is_set():
+            return JSONResponse(
+                {"status": 500, "message": "Timeout: Video chưa hoàn tất."}
+            )
 
         # Truy cập file video sau khi hoàn tất
         with state.lock:
@@ -47,3 +51,7 @@ def stop():
                 )
     except Exception as e:
         return JSONResponse({"status": 500, "message": f"Lỗi hệ thống: {str(e)}"})
+
+    finally:
+        # Đảm bảo giải phóng tài nguyên
+        state.reset()
