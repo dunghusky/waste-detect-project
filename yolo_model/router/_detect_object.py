@@ -5,12 +5,14 @@ import uvicorn
 
 from yolo_model.controllers import _stream_detect
 from yolo_model.manage.StateManager import state
+from yolo_model.schemas._waste_label import WasteLabel
 
 router = APIRouter(
     prefix="/api/v1/stream",
     tags=["stream"],
 )
 
+received_labels = []
 # ----------------------------------------------------------#
 # size : 800x600
 @router.get("/video_feed")
@@ -21,13 +23,13 @@ def video_feed():
         return StreamingResponse(
             _stream_detect.generate_stream(stream_url),
             media_type="multipart/x-mixed-replace; boundary=frame",
-            status_code = 200
+            status_code=200,
         )
     except Exception as e:
         return JSONResponse({"status": 500, "message": "Lỗi hệ thống!"})
 
 
-@router.post("/stop",)
+@router.post("/stop")
 def stop():
     try:
         state.terminate_flag = True
@@ -55,3 +57,18 @@ def stop():
     finally:
         # Đảm bảo giải phóng tài nguyên
         state.reset()
+
+
+@router.post("/send-label")
+async def send_label(waste_label: WasteLabel):
+    received_labels.append(waste_label)
+    # Xử lý gửi nhãn ở đây, ví dụ log hoặc tích hợp với phần cứng
+    print(
+        f"Received label: {waste_label.label}"
+    )
+    return {"message": "Label received successfully"}
+
+
+# @router.get("/view-labels")
+# async def view_labels():
+#     return {"received_labels": received_labels}
