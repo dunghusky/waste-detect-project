@@ -1,40 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Live Stream</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Labels</title>
 </head>
 <body>
-    <h1>Luồng Video Nhận Diện</h1>
-    <canvas id="videoCanvas" width="640" height="480"></canvas>
-    <div id="labels"></div>
+    <h1>Danh sách nhãn đã gửi</h1>
+    <pre id="labels" style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd;"></pre>
 
     <script>
-        const canvas = document.getElementById('videoCanvas');
-        const ctx = canvas.getContext('2d');
-        const labelsDiv = document.getElementById('labels');
-
-        const ws = new WebSocket("ws://127.0.0.1:8000/detect-stream?stream_url=rtmp://82.180.160.47:1888/live");
-
-        ws.binaryType = "arraybuffer";
-
-        ws.onmessage = function(event) {
-            if (typeof event.data === "string") {
-                // Nhãn từ JSON
-                const jsonData = JSON.parse(event.data);
-                if (jsonData.label !== undefined) {
-                    labelsDiv.innerHTML = `Label: ${jsonData.label}`;
-                }
-            } else {
-                // Frame video từ Binary
-                const blob = new Blob([event.data], { type: 'image/jpeg' });
-                const img = new Image();
-                img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                };
-                img.src = URL.createObjectURL(blob);
-            }
-        };
+        async function fetchLabels() {
+            const response = await fetch('http://127.0.0.1:8000/api/v1/stream/view-labels');
+            const data = await response.json();
+            document.getElementById("labels").innerText = JSON.stringify(data.received_labels, null, 2);
+        }
+        setInterval(fetchLabels, 1000); // Cập nhật mỗi giây
     </script>
 </body>
 </html>

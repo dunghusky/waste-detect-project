@@ -1,3 +1,4 @@
+from queue import Queue
 from datetime import datetime
 import time
 import cv2
@@ -11,6 +12,7 @@ import supervision as sv
 from yolo_model.train import map_yolo_to_label
 from yolo_model.manage.StateManager import state
 from yolo_model.manage.WebcamStream import WebcamStream
+from yolo_model.manage.YOLOWorker import YOLOWorker
 from config import _create_file
 
 def parse_args() -> argparse.Namespace:
@@ -93,7 +95,7 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
 # ----------------------------------------------------------------------------#
 
 def send_to_hardware_api(waste_label):
-    url = "http://192.168.1.13:8000/update"
+    url = "http://127.0.0.1:8000/api/v1/stream/send-label"
     payload = {"label": waste_label}
     try:
         response = requests.post(url, json=payload)
@@ -105,6 +107,98 @@ def send_to_hardware_api(waste_label):
         print("Lỗi kết nối tới API:", e)
 
 
+# def generate_stream(stream_url):
+#     """
+#     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
+#     """
+#     args = parse_args()
+#     frame_width, frame_height = args.webcam_resolutions
+
+#     # Tạo tên file video với timestamp
+#     state.output_file = _create_file.create_video()
+#     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+#     state.set_video_writer(
+#         cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
+#     )
+
+#     video_writer = state.get_video_writer()
+#     if not video_writer or not video_writer.isOpened():
+#         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
+
+#     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
+#     model, box_annatator, lables_annatator = initialize_yolo_and_annotators(
+#         "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+#     )
+
+#     # Mở luồng video
+#     cap = initialize_video_stream(stream_url, frame_width, frame_height)
+
+#     input_queue = Queue(maxsize=5)  # Hàng đợi để lưu khung hình đầu vào
+#     output_queue = Queue(maxsize=5)  # Hàng đợi để lưu kết quả đầu ra
+
+#     yolo_worker = YOLOWorker(model, input_queue, output_queue)
+#     yolo_worker.start()
+
+#     try:
+#         while not state.terminate_flag:
+#             if state.terminate_flag:  # Kiểm tra cờ dừng
+#                 break
+
+#             frame = cap.read()
+
+#             if frame is None:
+#                 print("Không nhận được khung hình.")
+#                 break
+
+#             if not input_queue.full():
+#                 input_queue.put(frame)
+
+#             # Xử lý nhận diện với YOLO
+#             if not output_queue.empty():
+#                 detections, annotated_frame, inference_time = output_queue.get()
+
+#                 # Gửi nhãn đến phần cứng qua API
+#                 # for class_name, confidence in zip(
+#                 #     detections["class_name"], detections.confidence
+#                 # ):
+#                 #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+#                 #     if waste_label != -1:
+#                 #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+#                 #         send_to_hardware_api(waste_label)
+
+#                 # Vẽ kết quả lên khung hình
+#                 annotated_frame = box_annatator.annotate(frame, detections)
+
+#                 video_writer = state.get_video_writer()
+#                 if video_writer is not None:
+#                     video_writer.write(annotated_frame)
+
+#                 # Mã hóa khung hình sang JPEG
+#                 _, buffer = cv2.imencode(".jpg", annotated_frame)
+#                 frame_bytes = buffer.tobytes()
+
+#                 # Truyền dữ liệu MJPEG
+#                 yield (
+#                     b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+#                 )
+
+#             if (
+#                 cv2.waitKey(1) == 27 or state.terminate_flag
+#             ):  # Exit when ESC key is pressed or terminate flag is set
+#                 break
+
+#     finally:
+#         cap.stop()
+#         yolo_worker.stop()
+#         yolo_worker.join()
+#         video_writer = state.get_video_writer()
+#         if video_writer:
+#             video_writer.release()
+#         state.set_video_writer(None)
+#         state.completed_event.set()  # Báo hiệu đã hoàn tất
+
+
+# ----------------------------------------------------------------------------#
 def generate_stream(stream_url):
     """
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
@@ -148,13 +242,13 @@ def generate_stream(stream_url):
             detections = detect_objects(frame, model)
 
             # Gửi nhãn đến phần cứng qua API
-            # for class_name, confidence in zip(
-            #     detections["class_name"], detections.confidence
-            # ):
-            #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
-            #     if waste_label != -1:
-            #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
-            #         send_to_hardware_api(waste_label)
+            for class_name, confidence in zip(
+                detections["class_name"], detections.confidence
+            ):
+                waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+                if waste_label != -1:
+                    print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                    send_to_hardware_api(waste_label)
 
             # Vẽ kết quả lên khung hình
             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
@@ -173,7 +267,8 @@ def generate_stream(stream_url):
 
             # Truyền dữ liệu MJPEG
             yield (
-                b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
@@ -187,87 +282,6 @@ def generate_stream(stream_url):
             video_writer.release()
         state.set_video_writer(None)
         state.completed_event.set()  # Báo hiệu đã hoàn tất
-
-
-# ----------------------------------------------------------------------------#
-# def generate_stream(stream_url):
-#     """
-#     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
-#     """
-#     args = parse_args()
-#     frame_width, frame_height = args.webcam_resolutions
-
-#     # Tạo tên file video với timestamp
-#     state.output_file = _create_file.create_video()
-#     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-#     state.set_video_writer(
-#         cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
-#     )
-
-#     video_writer = state.get_video_writer()
-#     if not video_writer or not video_writer.isOpened():
-#         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
-
-#     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
-#     model, box_annatator, lables_annatator = initialize_yolo_and_annotators(
-#         "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
-#     )
-
-#     # Mở luồng video
-#     cap = initialize_video_stream(stream_url, frame_width, frame_height)
-
-#     if not cap.isOpened():
-#         raise ValueError(f"Không thể mở stream từ URL: {stream_url}")
-
-#     try:
-#         while not state.terminate_flag:
-#             if state.terminate_flag:  # Kiểm tra cờ dừng
-#                 break
-
-#             ret, frame = cap.read()
-#             if not ret:
-#                 print("Không nhận được khung hình.")
-#                 break
-
-#             # Xử lý nhận diện với YOLO
-#             detections = detect_objects(frame, model)
-
-#             # Gửi nhãn đến phần cứng qua API
-#             # for class_name, confidence in zip(
-#             #     detections["class_name"], detections.confidence
-#             # ):
-#             #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
-#             #     if waste_label != -1:
-#             #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
-#             #         send_to_hardware_api(waste_label)
-
-#             # Vẽ kết quả lên khung hình
-#             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
-
-#             video_writer = state.get_video_writer()
-#             if video_writer is not None:
-#                 video_writer.write(frame)
-
-#             # Mã hóa khung hình sang JPEG
-#             _, buffer = cv2.imencode(".jpg", frame)
-#             frame_bytes = buffer.tobytes()
-
-#             # Truyền dữ liệu MJPEG
-#             yield (
-#                 b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
-#             )
-#             if (
-#                 cv2.waitKey(1) == 27 or state.terminate_flag
-#             ):  # Exit when ESC key is pressed or terminate flag is set
-#                 break
-
-#     finally:
-#         cap.release()
-#         video_writer = state.get_video_writer()
-#         if video_writer:
-#             video_writer.release()
-#         state.set_video_writer(None)
-#         state.completed_event.set()  # Báo hiệu đã hoàn tất
 
 
 # # ----------------------------------------------------------------------------#
