@@ -6,16 +6,9 @@
     <title>View Labels</title>
 </head>
 <body>
-    <h1>Danh sách nhãn đã gửi</h1>
-    <pre id="labels" style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd;"></pre>
-
-    <script>
-        async function fetchLabels() {
-            const response = await fetch('http://127.0.0.1:8000/api/v1/stream/view-labels');
-            const data = await response.json();
-            document.getElementById("labels").innerText = JSON.stringify(data.received_labels, null, 2);
-        }
-        setInterval(fetchLabels, 1000); // Cập nhật mỗi giây
-    </script>
+    <video width="320" height="240" controls>
+    <source src="https://new-bucket-save-video.s3.us-east-1.amazonaws.com/00dbbf43-760d-4d61-8008-9e0edaabe579.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>
 </body>
 </html>
