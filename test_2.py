@@ -1,22 +1,9 @@
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
+from yolo_model.controllers import _upload_video_s3
 
-# Tải và hiển thị hình ảnh với khung tọa độ
-img = mpimg.imread(
-    "E:/HocTap/graduation_project/waste-detect-project/00480.jpg"
-)  # Thay đường dẫn bằng tên tệp ảnh của bạn
-fig, ax = plt.subplots()
-ax.imshow(img)
+file_path = "./file_path/video_stream\output_20241203_221002.mp4"
+
+uploaf = convert_mp4(file_path)
 
 
-# Hàm xử lý sự kiện click vào hình ảnh để lấy tọa độ
-def onclick(event):
-    if event.xdata and event.ydata:
-        x, y = event.xdata, event.ydata
-        print(f"Tọa độ của điểm được chọn: ({int(x)}, {int(y)})")
-
-
-# Kết nối sự kiện click chuột
-cid = fig.canvas.mpl_connect("button_press_event", onclick)
-
-plt.show()
+out_put = _upload_video_s3.upload_video_to_s3(uploaf)
