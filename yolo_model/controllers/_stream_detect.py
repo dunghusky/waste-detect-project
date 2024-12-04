@@ -1,10 +1,7 @@
-from queue import Queue
-from datetime import datetime
 import time
 import cv2
 import requests
 import argparse
-import httpx
 
 from ultralytics import YOLO
 import supervision as sv
@@ -14,6 +11,7 @@ from yolo_model.manage.StateManager import state
 from yolo_model.manage.WebcamStream import WebcamStream
 from yolo_model.manage.YOLOWorker import YOLOWorker
 from config import _create_file
+from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
 
 def parse_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description="Yolov8 live camera")
@@ -241,14 +239,14 @@ def generate_stream(stream_url):
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
 
-            # Gửi nhãn đến phần cứng qua API
-            for class_name, confidence in zip(
-                detections["class_name"], detections.confidence
-            ):
-                waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
-                if waste_label != -1:
-                    print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
-                    send_to_hardware_api(waste_label)
+            # # Gửi nhãn đến phần cứng qua API
+            # for class_name, confidence in zip(
+            #     detections["class_name"], detections.confidence
+            # ):
+            #     waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+            #     if waste_label != -1:
+            #         print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+            #         send_to_hardware_api(waste_label)
 
             # Vẽ kết quả lên khung hình
             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
@@ -282,6 +280,8 @@ def generate_stream(stream_url):
             video_writer.release()
         state.set_video_writer(None)
         state.completed_event.set()  # Báo hiệu đã hoàn tất
+
+        state.output_file = convert_mp4(state.output_file)
 
 
 # # ----------------------------------------------------------------------------#
