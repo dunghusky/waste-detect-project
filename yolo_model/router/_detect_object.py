@@ -17,6 +17,8 @@ router = APIRouter(
 )
 
 received_labels = []
+# Global storage for video URL
+video_url_storage = None
 # ----------------------------------------------------------#
 # size : 800x600
 @router.get("/video_feed")
@@ -50,9 +52,19 @@ def stop():
                 logger.info(f"File video được tạo: {state.output_file}")
                 print(f"\n\nLink: {state.output_file}")
 
-                video_url = _upload_video_s3.upload_video_to_s3(state.output_file)
+                converted_video_file = _upload_video_s3.convert_video_to_mp4(state.output_file)
+                state.output_file = converted_video_file  # Cập nhật lại state.output_file
 
-                video_url = asyncio.get_event_loop().run_until_complete(video_url)
+                # Đảm bảo video đã chuyển đổi xong
+                if not state.output_file or not os.path.exists(state.output_file):
+                    return JSONResponse(
+                        {
+                            "status": 500,
+                            "message": "Không tìm thấy video đã chuyển đổi.",
+                        }
+                    )
+
+                video_url = _upload_video_s3.upload_video_to_s3(state.output_file)
                 print("\nVideo: ", video_url)
 
                 # Thay đổi URL từ S3 URL sang CloudFront URL
@@ -61,6 +73,9 @@ def stop():
                 cloudfront_url = f"{cloudfront_base_url}{video_file_key}"
 
                 print("\nVideo: ", cloudfront_url)
+
+                global video_url_storage
+                video_url_storage = cloudfront_url
 
                 ## Xóa các file video sau khi upload lên S3
                 # if os.path.exists(state.output_file):
@@ -76,7 +91,7 @@ def stop():
                     content={
                         "status": 200,
                         "message": "Video uploaded successfully",
-                        "video_url": cloudfront_url,
+                        # "video_url": cloudfront_url,
                     },
                     status_code=200,
                 )
@@ -102,30 +117,25 @@ async def send_label(waste_label: WasteLabel):
     return {"message": "Label received successfully"}
 
 
-@router.get("/view-video")
-async def view_video():
+@router.get("/get_video_url")
+def get_video_url():
     try:
-        # Trả về URL của video vừa ghi và upload lên S3
-        if state.output_file:
-            video_url = f"https://{_upload_video_s3.AWS_BUCKET}.s3.{_upload_video_s3.AWS_REGION}.amazonaws.com/videos/{os.path.basename(state.output_file)}"
+        global video_url_storage
+        if video_url_storage:
             return JSONResponse(
                 content={
                     "status": 200,
-                    "message": "Video URL retrieved successfully",
-                    "video_url": video_url,
+                    "message": "Lấy URL video thành công.",
+                    "video_url": video_url_storage,
                 },
                 status_code=200,
             )
         else:
             return JSONResponse(
-                content={"status": 400, "message": "Không tìm thấy video."},
-                status_code=400,
+                {"status": 404, "message": "Không tìm thấy video để xem."}
             )
     except Exception as e:
-        return JSONResponse(
-            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
-            status_code=500,
-        )
+        return JSONResponse({"status": 500, "message": f"Lỗi hệ thống: {str(e)}"})
 
 
 # @router.get("/view-labels")
