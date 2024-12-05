@@ -20,7 +20,7 @@ s3 = boto3.resource("s3")
 bucket = s3.Bucket(AWS_BUCKET)
 
 
-async def s3_upload(contents: bytes, key: str, mime_type: str):
+def s3_upload(contents: bytes, key: str, mime_type: str):
     """
     Upload video lên S3 và trả về URL của video.
     """
@@ -37,7 +37,7 @@ async def s3_upload(contents: bytes, key: str, mime_type: str):
         raise
 
 
-async def upload_video_to_s3_async(output_file: str):
+def upload_video_to_s3(output_file: str):
     """
     Upload video lên S3 và trả về URL của video.
     """
@@ -56,19 +56,11 @@ async def upload_video_to_s3_async(output_file: str):
         print("\n file: ", file_extension)
         file_key = f"{uuid.uuid4()}.{file_extension}"
 
-        video_url = await s3_upload(
+        video_url = s3_upload(
             contents=file_contents, key=file_key, mime_type="video/mp4"
         )
 
     return video_url
-
-
-def upload_video_to_s3(output_file: str):
-    """
-    Upload video lên S3 và trả về URL của video.
-    """
-    loop = asyncio.get_event_loop()  # Lấy loop hiện tại
-    return loop.run_until_complete(upload_video_to_s3_async(output_file))
 
 
 def convert_video_to_mp4(input_file):
