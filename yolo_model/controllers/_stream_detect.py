@@ -82,6 +82,9 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     print(
         f"Kích thước thực tế của luồng video: {int(actual_width)}x{int(actual_height)}"
     )
+
+    fps = webcam_stream.vcap.get(cv2.CAP_PROP_FPS)  # Lấy FPS thực tế từ webcam stream
+    print(f"FPS của webcam/video stream: {fps}")
     # cap = cv2.VideoCapture()
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
@@ -89,7 +92,7 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     # if not cap.isOpened():
     #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
 
-    return webcam_stream
+    return webcam_stream, fps
 # ----------------------------------------------------------------------------#
 
 def send_to_hardware_api(waste_label):
@@ -112,11 +115,16 @@ def generate_stream(stream_url):
     args = parse_args()
     frame_width, frame_height = args.webcam_resolutions
 
+    # Mở luồng video
+    cap, fps = initialize_video_stream(stream_url, frame_width, frame_height)
+
     # Tạo tên file video với timestamp
     state.output_file = _create_file.create_video()
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
-        cv2.VideoWriter(state.output_file, fourcc, 20.0, (frame_width, frame_height))
+        cv2.VideoWriter(
+            state.output_file, fourcc, 26.0, (frame_width, frame_height)
+        )
     )
 
     video_writer = state.get_video_writer()
@@ -127,9 +135,6 @@ def generate_stream(stream_url):
     model, box_annatator, lables_annatator = initialize_yolo_and_annotators(
         "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
     )
-
-    # Mở luồng video
-    cap = initialize_video_stream(stream_url, frame_width, frame_height)
 
     try:
         while not state.terminate_flag:

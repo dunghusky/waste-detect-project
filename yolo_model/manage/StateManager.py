@@ -1,3 +1,4 @@
+from datetime import datetime
 from threading import Event, Lock
 
 class StateManager:
@@ -7,6 +8,19 @@ class StateManager:
         self.terminate_flag = False
         self.lock = Lock()  # Khóa để bảo vệ truy cập
         self.completed_event = Event()
+
+        self.start_time = None
+        self.end_time = None
+
+    # def set_start_time(self):
+    #     """Gán thời gian bắt đầu quay video"""
+    #     with self.lock:
+    #         self.start_time = datetime.now()
+
+    # def set_end_time(self):
+    #     """Gán thời gian kết thúc quay video"""
+    #     with self.lock:
+    #         self.end_time = datetime.now()
 
     def set_video_writer(self, writer):
         with self.lock:
@@ -20,6 +34,8 @@ class StateManager:
         with self.lock:
             self.terminate_flag = False
             self.output_file = None
+            self.start_time = None
+            self.end_time = None
             if self.video_writer:
                 self.video_writer.release()
             self.video_writer = None

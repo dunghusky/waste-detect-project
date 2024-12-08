@@ -11,3 +11,8 @@ def create_video():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = os.path.join(output_dir, f"output_{timestamp}.mp4")
     return output_file
+
+def return_file_name(file_path):
+    file_name_with_extension = os.path.basename(file_path)
+    file_name, file_extension = os.path.splitext(file_name_with_extension)
+    return file_name
