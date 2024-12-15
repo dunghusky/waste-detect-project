@@ -11,7 +11,7 @@ class VideoXuLy(Base):
     thoiLuong = Column(Float, nullable=False)
     ngayBatDauQuay = Column(DATETIME, nullable=False)
     ngayKetThuc = Column(DATETIME, nullable=False)
-    moTa = Column(String(1000), nullable=False)
+    moTa = Column(String(1000))
     duongDan = Column(String(1000), nullable=False)
     maCamera = Column(Integer, ForeignKey("Camera.maCamera"))
     maMoHinh = Column(Integer, ForeignKey("DanhMucMoHinh.maMoHinh"))
