@@ -57,7 +57,7 @@ def stop():
                 state.end_time = datetime.now()
 
                 video_duration = (state.end_time - start_time).total_seconds()
-                
+
                 file_name = _create_file.return_file_name(state.output_file)
 
                 logger.info(f"File video được tạo: {state.output_file}")
@@ -79,10 +79,10 @@ def stop():
                 print("\nVideo: ", video_url)
 
                 # Thay đổi URL từ S3 URL sang CloudFront URL
-                cloudfront_base_url = _constants.CLOUDFRONT_BASE_URL
-                video_file_key = video_url.split("/")[-1]  # Lấy tên file từ S3 URL
-                cloudfront_url = f"{cloudfront_base_url}{video_file_key}"
-
+                # cloudfront_base_url = _constants.CLOUDFRONT_BASE_URL
+                # video_file_key = video_url.split("/")[-1]  # Lấy tên file từ S3 URL
+                # cloudfront_url = f"{cloudfront_base_url}{video_file_key}"
+                cloudfront_url = _upload_video_s3.convert_cloudfront_link(video_url)
                 print("\nVideo: ", cloudfront_url)
 
                 global video_url_storage

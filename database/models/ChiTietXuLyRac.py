@@ -8,8 +8,8 @@ class ChiTietXuLyRac(Base):
 
     maVideo = Column(Integer, ForeignKey("VideoXuLy.maVideo"), primary_key=True)
     maRacThai = Column(Integer, ForeignKey("RacThai.maRacThai"), primary_key=True)
-    SoLuongXuLy = Column(String(1000), nullable=False)
-    ghiChu = Column(String(1000), nullable=False)
+    SoLuongXuLy = Column(Integer, nullable=False)
+    ghiChu = Column(String(1000))
 
     racthai = relationship("RacThai", back_populates="ctxlyracs")
     video = relationship("VideoXuLy", back_populates="ctxlyracs")

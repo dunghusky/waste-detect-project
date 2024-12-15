@@ -63,6 +63,14 @@ def upload_video_to_s3(output_file: str):
     return video_url
 
 
+# Thay đổi URL từ S3 URL sang CloudFront URL
+def convert_cloudfront_link(video_url):
+    cloudfront_base_url = _constants.CLOUDFRONT_BASE_URL
+    video_file_key = video_url.split("/")[-1]  # Lấy tên file từ S3 URL
+    cloudfront_url = f"{cloudfront_base_url}{video_file_key}"
+    return cloudfront_url
+
+
 def convert_video_to_mp4(input_file):
     """
     Hàm chuyển đổi video đã ghi sang định dạng MP4 với codec h.264 và AAC
