@@ -244,7 +244,6 @@ waste_count = {
 }
 
 counted_ids = set()
-crossed_line = {}  # Lưu trạng thái cắt qua line của từng tracker_id
 
 # Đếm số frame để đặt tên file
 def run_detection(stream_url):

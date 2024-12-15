@@ -1,3 +1,5 @@
+from supervision import Point
+
 # --------------------File Path------------------------#
 VIDEO_PATH = "./file_path/video_stream"
 
@@ -11,3 +13,19 @@ SUPPORT_FILE_TYPES = {
 }
 
 CLOUDFRONT_BASE_URL = "https://d3cnmk90vb0eje.cloudfront.net/"
+
+LINE_START = Point(670, 0)
+LINE_END = Point(670, 750)
+
+waste_count = {
+    "chai-lo-manh-vo-thuy-tinh": 0,
+    "chai-nhua": 0,
+    "hop-sua": 0,
+    "khau-trang": 0,
+    "lon-nuoc-giai-khat-bang-kim-loai": 0,
+    "ly-nhua": 0,
+    "rac-huu-co": 0,
+    "tui-nilon": 0,
+}
+
+COUNTED_IDS= set()

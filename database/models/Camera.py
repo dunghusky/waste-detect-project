@@ -8,8 +8,8 @@ class Camera(Base):
 
     maCamera = Column(Integer, primary_key=True, autoincrement=True)
     tenCamera = Column(String(1000), nullable=False)
-    diaDiem = Column(String(1000), nullable=False)
+    diaDiem = Column(String(1000))
     trangThaiHoatDong = Column(Integer, nullable=False, default=1)
-    moTa =  Column(String(1000), nullable=False)
+    moTa =  Column(String(1000))
 
     videos = relationship("VideoXuLy", back_populates="camera")

@@ -10,7 +10,7 @@ from yolo_model.train import map_yolo_to_label
 from yolo_model.manage.StateManager import state
 from yolo_model.manage.WebcamStream import WebcamStream
 from yolo_model.manage.YOLOWorker import YOLOWorker
-from config import _create_file
+from config import _create_file, _constants
 from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
 
 def parse_args() -> argparse.Namespace:
@@ -47,10 +47,16 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     Returns:
     - frame: Khung hình đã được vẽ khung hộp và nhãn.
     """
+    # labels = [
+    #     f"{class_name} {confidence:.2f}"
+    #     for class_name, confidence in zip(
+    #         detections["class_name"], detections.confidence
+    #     )
+    # ]
     labels = [
-        f"{class_name} {confidence:.2f}"
-        for class_name, confidence in zip(
-            detections["class_name"], detections.confidence
+        f"#{tracker_id} {class_name} {confidence:.2f}"
+        for class_name, confidence, tracker_id in zip(
+            detections["class_name"], detections.confidence, detections.tracker_id
         )
     ]
     frame = box_annotator.annotate(detections=detections, scene=frame)
@@ -60,14 +66,24 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     return frame
 
 
-def initialize_yolo_and_annotators(model_path: str):
+def initialize_yolo_and_annotators(model_path: str, LINE_START: sv.Point, LINE_END: sv.Point):
     """
     Khởi tạo mô hình YOLO và các annotator.
     """
     model = YOLO(model_path)
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
-    return model, box_annotator, label_annotator
+    line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
+    line_annotator = sv.LineZoneAnnotator(thickness=4, text_thickness=4, text_scale=2)
+    byte_tracker = sv.ByteTrack()
+    return (
+        model,
+        box_annotator,
+        label_annotator,
+        line_counter,
+        line_annotator,
+        byte_tracker
+    )
 
 
 def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int):
@@ -132,9 +148,12 @@ def generate_stream(stream_url):
         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
 
     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
-    model, box_annatator, lables_annatator = initialize_yolo_and_annotators(
+    model, box_annatator, lables_annatator, line_counter, line_annotator, byte_tracker = initialize_yolo_and_annotators(
         "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
     )
+
+    prev_in_count = 0
+    prev_out_count = 0
 
     try:
         while not state.terminate_flag:
@@ -152,6 +171,8 @@ def generate_stream(stream_url):
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
 
+            detections = byte_tracker.update_with_detections(detections=detections)
+
             # # Gửi nhãn đến phần cứng qua API
             # for class_name, confidence in zip(
             #     detections["class_name"], detections.confidence
@@ -163,6 +184,29 @@ def generate_stream(stream_url):
 
             # Vẽ kết quả lên khung hình
             frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
+
+            line_counter.trigger(detections)
+
+            if line_counter.out_count > prev_out_count:
+                print("aaaaaaaaaaaaa")
+                for class_name, tracker_id in zip(
+                    detections["class_name"], detections.tracker_id
+                ):
+                    print("\n###Class_name: ", class_name)
+                    print("\n###Tracker_id: ", tracker_id)
+                    if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
+                        _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+                        if class_name in _constants.waste_count:
+                            print("\n###Class_name: ", class_name)
+                            _constants.waste_count[class_name] += 1
+                            print("\n###Updated waste_count: ", _constants.waste_count)
+                        else:
+                            print("\nKhông có class_id")
+
+                prev_out_count = line_counter.out_count
+
+            line_annotator.annotate(frame=frame, line_counter=line_counter)
+
             end_time = time.time()
 
             latency = end_time - start_time
