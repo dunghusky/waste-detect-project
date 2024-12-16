@@ -200,6 +200,10 @@ def generate_stream(stream_url):
                             print("\n###Class_name: ", class_name)
                             _constants.waste_count[class_name] += 1
                             print("\n###Updated waste_count: ", _constants.waste_count)
+                            waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+                            if waste_label != -1:
+                                print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                                send_to_hardware_api(waste_label)
                         else:
                             print("\nKhông có class_id")
 
