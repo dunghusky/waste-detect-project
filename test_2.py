@@ -10,7 +10,22 @@
 # file = _create_file.return_file_name(file_path)
 # print(file)
 # out_put = _upload_video_s3.upload_video_to_s3_async(uploaf)
-from supervision import Point
-LINE_START = Point(670, 0)
-print(LINE_START)
+# from supervision import Point
+# LINE_START = Point(670, 0)
+# print(LINE_START)
 # LINE_END = Point(670, 750)
+
+from yolo_model.controllers import _trigger_to_db
+from database.dependencies.dependencies import get_db
+from database.models.DanhMucPhanLoaiRac import DanhMucPhanLoaiRac
+from database.models.RacThai import RacThai
+
+id = _trigger_to_db.get_id_waste_from_class_name("chai-nhua")
+print(id)
+# with next(get_db()) as db:
+#         result = (
+#             db.query(RacThai.maRacThai)
+#             .filter_by(maRacThaiQuyChieu="chai-nhua")
+#             .first()
+#         )
+# print(result)

@@ -14,5 +14,6 @@ class RacThai(Base):
     maRacThaiQuyChieu = Column(String(1000), nullable=False)
     maDanhMuc = Column(Integer, ForeignKey("DanhMucPhanLoaiRac.maDanhMuc"))
 
-    danhmucphanloai = relationship("DanhMucPhanLoaiRac", back_populates="racthais")
-    ctxlyracs = relationship("ChiTietXuLyRac", back_populates="racthai")
+    danhmucphanloai = relationship(
+        "DanhMucPhanLoaiRac", back_populates="racthais", lazy="joined"
+    )
