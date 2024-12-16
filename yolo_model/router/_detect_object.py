@@ -88,9 +88,15 @@ def stop():
                 global video_url_storage
                 video_url_storage = cloudfront_url
 
-                _save_to_db.save_to_db(
-                   file_name, cloudfront_url, state.start_time, state.end_time, video_duration
+                maVideo = _save_to_db.save_video_process_db(
+                    file_name,
+                    cloudfront_url,
+                    state.start_time,
+                    state.end_time,
+                    video_duration,
                 )
+                
+                
 
                 ## Xóa các file video sau khi upload lên S3
                 # if os.path.exists(state.output_file):
