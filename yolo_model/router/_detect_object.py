@@ -7,7 +7,12 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from loguru import logger
 import uvicorn
 
-from yolo_model.controllers import _stream_detect, _upload_video_s3, _save_to_db
+from yolo_model.controllers import (
+    _stream_detect,
+    _upload_video_s3,
+    _save_to_db,
+    _trigger_to_db,
+)
 from yolo_model.manage.StateManager import state
 from yolo_model.schemas._waste_label import WasteLabel
 from config import _constants, _create_file
@@ -27,7 +32,7 @@ def video_feed():
     try:
         state.start_time = datetime.now()
 
-        stream_url = "rtmp://45.90.223.138:1256/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
+        stream_url = "rtmp://45.90.223.138:12586/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
         return StreamingResponse(
             _stream_detect.generate_stream(stream_url),
             media_type="multipart/x-mixed-replace; boundary=frame",
@@ -88,15 +93,27 @@ def stop():
                 global video_url_storage
                 video_url_storage = cloudfront_url
 
-                maVideo = _save_to_db.save_video_process_db(
+                idVideo = _save_to_db.save_video_process_db(
                     file_name,
                     cloudfront_url,
                     state.start_time,
                     state.end_time,
                     video_duration,
                 )
-                
-                
+                print("\nLưu video thành công, id_video: ", idVideo)
+                for class_name, so_luong in state.waste_count.items():
+                    if so_luong > 0:  # Chỉ xử lý nếu số lượng > 0
+                        idWaste = _trigger_to_db.get_id_waste_from_class_name(
+                            class_name
+                        )
+                        if idWaste:
+                            _save_to_db.save_details_wastes_process_db(
+                                idVideo, idWaste, so_luong, ghi_chu=None
+                            )
+                        else:
+                            print(
+                                f"Không tìm thấy maRacThai cho class_name: {class_name}"
+                            )
 
                 ## Xóa các file video sau khi upload lên S3
                 # if os.path.exists(state.output_file):

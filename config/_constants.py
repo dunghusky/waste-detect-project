@@ -17,7 +17,7 @@ CLOUDFRONT_BASE_URL = "https://d3cnmk90vb0eje.cloudfront.net/"
 LINE_START = Point(670, 0)
 LINE_END = Point(670, 750)
 
-waste_count = {
+WASTE_COUNT = {
     "chai-lo-manh-vo-thuy-tinh": 0,
     "chai-nhua": 0,
     "hop-sua": 0,

@@ -17,3 +17,4 @@ class RacThai(Base):
     danhmucphanloai = relationship(
         "DanhMucPhanLoaiRac", back_populates="racthais", lazy="joined"
     )
+    ctxlyracs = relationship("ChiTietXuLyRac", back_populates="racthai")

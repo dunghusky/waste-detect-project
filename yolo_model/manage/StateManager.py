@@ -11,6 +11,7 @@ class StateManager:
 
         self.start_time = None
         self.end_time = None
+        self.waste_count = {}
 
     # def set_start_time(self):
     #     """Gán thời gian bắt đầu quay video"""
@@ -36,6 +37,7 @@ class StateManager:
             self.output_file = None
             self.start_time = None
             self.end_time = None
+            self.waste_count = None
             if self.video_writer:
                 self.video_writer.release()
             self.video_writer = None
