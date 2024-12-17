@@ -1,3 +1,4 @@
+from copy import deepcopy
 import time
 import cv2
 import requests
@@ -47,12 +48,12 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     Returns:
     - frame: Khung hình đã được vẽ khung hộp và nhãn.
     """
-    # labels = [
-    #     f"{class_name} {confidence:.2f}"
-    #     for class_name, confidence in zip(
-    #         detections["class_name"], detections.confidence
-    #     )
-    # ]
+    
+    # Kiểm tra detections trước khi xử lý
+    if detections is None or not detections["class_name"]:
+        print("Không có đối tượng để vẽ.")
+        return frame  # Trả về khung hình gốc
+
     labels = [
         f"#{tracker_id} {class_name} {confidence:.2f}"
         for class_name, confidence, tracker_id in zip(
@@ -149,8 +150,10 @@ def generate_stream(stream_url):
 
     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
     model, box_annatator, lables_annatator, line_counter, line_annotator, byte_tracker = initialize_yolo_and_annotators(
-        "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+        "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt", _constants.LINE_START, _constants.LINE_END
     )
+
+    state.waste_count = deepcopy(_constants.WASTE_COUNT)
 
     prev_in_count = 0
     prev_out_count = 0
@@ -170,6 +173,11 @@ def generate_stream(stream_url):
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
+            
+            # Kiểm tra detections trước khi tiếp tục
+            if detections is None or len(detections["class_name"]) == 0:
+                print("Không có đối tượng nào được nhận diện.")
+                continue  # Bỏ qua khung hình này và tiếp tục vòng lặp
 
             detections = byte_tracker.update_with_detections(detections=detections)
 
@@ -196,10 +204,10 @@ def generate_stream(stream_url):
                     print("\n###Tracker_id: ", tracker_id)
                     if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
                         _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
-                        if class_name in _constants.waste_count:
+                        if class_name in state.waste_count:
                             print("\n###Class_name: ", class_name)
-                            _constants.waste_count[class_name] += 1
-                            print("\n###Updated waste_count: ", _constants.waste_count)
+                            state.waste_count[class_name] += 1
+                            print("\n###Updated waste_count: ", state.waste_count)
                             waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
                             if waste_label != -1:
                                 print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
@@ -244,5 +252,5 @@ def generate_stream(stream_url):
 
 
 # Chạy chương trình
-if __name__ == "__main__":
-    generate_stream("rtmp://82.180.160.47:1888/live")
+# if __name__ == "__main__":
+#     # generate_stream("rtmp://82.180.160.47:1888/live")
