@@ -35,16 +35,14 @@ def save_video_process_db(file_name ,cloudfront_url, start_time, end_time, video
 
 
 def save_details_wastes_process_db(
-    id_video, id_waste, quantity_process, note
+    id_video, id_waste, quantity_process
 ):
-    """Lưu video vào cơ sở dữ liệu"""
     try:
         with next(get_db()) as db:
             save_quantity_db = ChiTietXuLyRac(
                 maVideo = id_video,
                 maRacThai = id_waste,
-                SoLuongXuLy = quantity_process,
-                ghiChu = note
+                SoLuongXuLy = quantity_process
             )
             db.add(save_quantity_db)
             db.commit()
