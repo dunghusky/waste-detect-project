@@ -42,5 +42,6 @@ start_time="2024-12-17 22:18:08.330587"
 end_time= "2024-12-17 22:18:46.458299"
 
 video_duration="38.127712"
-id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
+# id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
+_save_to_db.save_details_wastes_process_db('1', '1', 10, )
 print(id)
