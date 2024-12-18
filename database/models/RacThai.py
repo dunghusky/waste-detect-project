@@ -8,7 +8,6 @@ class RacThai(Base):
 
     maRacThai = Column(Integer, primary_key=True, autoincrement=True)
     tenRacThai = Column(String(1000), nullable=False)
-    tongSoLuongRacDaXuLy = Column(Integer, nullable=False)
     ghiChu = Column(String(1000))
     hinhAnh = Column(String(1000))
     maRacThaiQuyChieu = Column(String(1000), nullable=False)

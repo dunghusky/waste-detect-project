@@ -108,7 +108,7 @@ def stop():
                         )
                         if idWaste:
                             _save_to_db.save_details_wastes_process_db(
-                                idVideo, idWaste, so_luong, ghi_chu=None
+                                idVideo, idWaste, so_luong
                             )
                         else:
                             print(
