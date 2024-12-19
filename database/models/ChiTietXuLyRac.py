@@ -6,8 +6,16 @@ from database.connect_db._database_mysql import Base
 class ChiTietXuLyRac(Base):
     __tablename__ = "ChiTietXuLyRac"
 
-    maVideo = Column(Integer, ForeignKey("VideoXuLy.maVideo"), primary_key=True)
-    maRacThai = Column(Integer, ForeignKey("RacThai.maRacThai"), primary_key=True)
+    maVideo = Column(
+        Integer,
+        ForeignKey("VideoXuLy.maVideo", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    )
+    maRacThai = Column(
+        Integer,
+        ForeignKey("RacThai.maRacThai", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+    )
     SoLuongXuLy = Column(Integer, nullable=False)
     ghiChu = Column(String(1000))
 
