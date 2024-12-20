@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database.models.User import User
 from database.schemas._user import Login
@@ -6,13 +6,10 @@ from database.connect_db._database_mysql import SessionLocal
 from database.dependencies.dependencies import get_db
 from fastapi.responses import JSONResponse
 
-from datetime import datetime
-
 router = APIRouter(
     prefix="/api/v1/user",
     tags=["user"],
 )
-
 
 @router.post("/login")
 async def login(user: Login, db: Session = Depends(get_db)):
