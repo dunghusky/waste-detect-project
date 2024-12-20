@@ -20,6 +20,7 @@ from database.dependencies.dependencies import get_db
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from database.schemas._camera import CameraDelete
 from database.models.Camera import Camera
 from database.models.DanhMucPhanLoaiRac import DanhMucPhanLoaiRac
 from database.models.DanhMucMoHinh import DanhMucMoHinh
@@ -59,6 +60,43 @@ def delete_model_category(maMoHinh: int, db: Session = Depends(get_db)):
             content={
                 "status": 200,
                 "message": f"Xóa mã mô hình {maMoHinh} thành công.",
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
+
+
+@router.post("/delete_camera/{idCamera}")
+def delete_camera(idCamera: int, db: Session = Depends(get_db)):
+    """
+    API xóa một dòng trong bảng DanhMucMoHinh.
+    Nếu có các dữ liệu liên quan trong bảng VideoXuLy, chúng sẽ bị xóa tự động nhờ CASCADE DELETE.
+    """
+    try:
+        # Kiểm tra xem mã mô hình có tồn tại không
+        camera = db.query(Camera).filter_by(maCamera=idCamera).first()
+        if not camera:
+            return JSONResponse(
+                content={
+                    "status": 404,
+                    "message": f"Mã mô hình {idCamera} không tồn tại.",
+                },
+                status_code=404,
+            )
+
+        # Xóa dòng trong bảng DanhMucMoHinh
+        db.delete(camera)
+        db.commit()
+
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": f"Xóa mã mô hình {idCamera} thành công.",
             },
             status_code=200,
         )
