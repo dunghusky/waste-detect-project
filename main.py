@@ -2,17 +2,9 @@ from fastapi import FastAPI
 from database.connect_db._database_mysql import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from database.router import _user, _rac_thai, _danh_muc_plr
+from database.router import _user, _rac_thai, _danh_muc_plr, _camera, _ctxl_rac, _danh_muc_mh, _video_xu_ly
 from yolo_model.router import _detect_object, _api_get_data
-from database.models import (
-    Camera,
-    ChiTietXuLyRac,
-    DanhMucMoHinh,
-    DanhMucPhanLoaiRac,
-    RacThai,
-    User,
-    VideoXuLy,
-)
+
 
 app = FastAPI()
 
@@ -31,6 +23,10 @@ app.include_router(_detect_object.router)
 app.include_router(_api_get_data.router)
 app.include_router(_rac_thai.router)
 app.include_router(_danh_muc_plr.router)
+app.include_router(_camera.router)
+app.include_router(_ctxl_rac.router)
+app.include_router(_danh_muc_mh.router)
+app.include_router(_video_xu_ly.router)
 
 Base.metadata.create_all(bind=engine)  # Tạo lại các bảng mới nhất
 

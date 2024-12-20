@@ -13,23 +13,18 @@ from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
 
 router = APIRouter(
-    prefix="/api/v1/waste-category",
-    tags=["waste-category"],
+    prefix="/api/v1/camera",
+    tags=["camera"],
 )
 
 
-@router.get("/waste_category_data") 
-def get_waste_category_data(db: Session = Depends(get_db)):
+@router.get("/camera_data")  # chưa test
+def get_camera_data(db: Session = Depends(get_db)):
     try:
-        
+        # Truy vấn tính tổng từ bảng ChiTietXuLyRac
         query = text(
             """
-            SELECT d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu,
-                SUM(c.soLuongXuLy) AS tongSoLuongDaXuLy, d.hinhAnh
-            FROM DanhMucPhanLoaiRac d
-            LEFT JOIN RacThai r ON d.maDanhMuc = r.maDanhMuc
-            LEFT JOIN ChiTietXuLyRac c ON r.maRacThai = c.maRacThai
-            GROUP BY d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu
+            SELECT * FROM Camera
             """
         )
 
@@ -39,11 +34,10 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         data = [
             {
                 "STT": index + 1,
-                "tenDanhMuc": row.tenDanhMuc,
-                "maDanhMucQuyChieu": row.maDanhMucQuyChieu,
-                "tongSoLuongDaXuLy": int(row.tongSoLuongDaXuLy or 0),
-                "hinhAnh": row.hinhAnh,
-                "ghiChu": row.ghiChu,
+                "tenCamera": row.tenCamera,
+                "diaDiem": row.diaDiem,
+                "trangThaiHoatDong": row.trangThaiHoatDong,
+                "moTa": row.moTa,
             }
             for index, row in enumerate(result)
         ]
@@ -51,7 +45,7 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Lấy danh sách danh mục rác thải thành công.",
+                "message": "Lấy danh sách camera thành công.",
                 "data": data,
             },
             status_code=200,
