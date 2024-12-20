@@ -13,23 +13,21 @@ from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
 
 router = APIRouter(
-    prefix="/api/v1/waste-category",
-    tags=["waste-category"],
+    prefix="/api/v1/details_process_video",
+    tags=["details_process_video"],
 )
 
 
-@router.get("/waste_category_data") 
-def get_waste_category_data(db: Session = Depends(get_db)):
+@router.get("/video_detail_process_data")  # chưa test
+def get_video_detail_process_data(db: Session = Depends(get_db)):
     try:
-        
+        # Truy vấn tính tổng từ bảng ChiTietXuLyRac
         query = text(
             """
-            SELECT d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu,
-                SUM(c.soLuongXuLy) AS tongSoLuongDaXuLy, d.hinhAnh
-            FROM DanhMucPhanLoaiRac d
-            LEFT JOIN RacThai r ON d.maDanhMuc = r.maDanhMuc
-            LEFT JOIN ChiTietXuLyRac c ON r.maRacThai = c.maRacThai
-            GROUP BY d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu
+            SELECT c.maVideo, c.maRacThai, c.soLuongXuLy, c.ghiChu, r.tenRacThai, v.tenVideo
+            FROM ChiTietXuLyRac c
+            LEFT JOIN RacThai r ON c.maRacThai = r.maRacThai
+            LEFT JOIN VideoXuLy v ON c.maVideo = v.maVideo
             """
         )
 
@@ -39,10 +37,9 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         data = [
             {
                 "STT": index + 1,
-                "tenDanhMuc": row.tenDanhMuc,
-                "maDanhMucQuyChieu": row.maDanhMucQuyChieu,
-                "tongSoLuongDaXuLy": int(row.tongSoLuongDaXuLy or 0),
-                "hinhAnh": row.hinhAnh,
+                "tenVideo": row.tenVideo,
+                "tenRacThai": row.tenRacThai,
+                "soLuongXuLy": row.soLuongXuLy,
                 "ghiChu": row.ghiChu,
             }
             for index, row in enumerate(result)
@@ -51,7 +48,7 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Lấy danh sách danh mục rác thải thành công.",
+                "message": "Lấy danh sách CTXLR thành công.",
                 "data": data,
             },
             status_code=200,

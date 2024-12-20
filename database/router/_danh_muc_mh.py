@@ -13,23 +13,16 @@ from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
 
 router = APIRouter(
-    prefix="/api/v1/waste-category",
-    tags=["waste-category"],
+    prefix="/api/v1/model-category",
+    tags=["model-category"],
 )
 
-
-@router.get("/waste_category_data") 
-def get_waste_category_data(db: Session = Depends(get_db)):
+@router.get("/model_category_data")  # chưa test
+def get_model_category_data(db: Session = Depends(get_db)):
     try:
-        
         query = text(
             """
-            SELECT d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu,
-                SUM(c.soLuongXuLy) AS tongSoLuongDaXuLy, d.hinhAnh
-            FROM DanhMucPhanLoaiRac d
-            LEFT JOIN RacThai r ON d.maDanhMuc = r.maDanhMuc
-            LEFT JOIN ChiTietXuLyRac c ON r.maRacThai = c.maRacThai
-            GROUP BY d.maDanhMuc, d.tenDanhMuc, d.maDanhMucQuyChieu, d.ghiChu
+            SELECT * FROM DanhMucMoHinh
             """
         )
 
@@ -39,10 +32,8 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         data = [
             {
                 "STT": index + 1,
-                "tenDanhMuc": row.tenDanhMuc,
-                "maDanhMucQuyChieu": row.maDanhMucQuyChieu,
-                "tongSoLuongDaXuLy": int(row.tongSoLuongDaXuLy or 0),
-                "hinhAnh": row.hinhAnh,
+                "tenMoHinh": row.tenMoHinh,
+                "duongDan": row.duongDan,
                 "ghiChu": row.ghiChu,
             }
             for index, row in enumerate(result)
@@ -51,7 +42,7 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Lấy danh sách danh mục rác thải thành công.",
+                "message": "Lấy danh sách danh mục mô hình thành công.",
                 "data": data,
             },
             status_code=200,
