@@ -13,8 +13,10 @@ class VideoXuLy(Base):
     ngayKetThuc = Column(DATETIME, nullable=False)
     moTa = Column(String(1000))
     duongDan = Column(String(1000), nullable=False)
-    maCamera = Column(Integer, ForeignKey("Camera.maCamera"))
-    maMoHinh = Column(Integer, ForeignKey("DanhMucMoHinh.maMoHinh"))
+    maCamera = Column(
+        Integer, ForeignKey("Camera.maCamera", ondelete="CASCADE", onupdate="CASCADE")
+    )
+    maMoHinh = Column(Integer, ForeignKey("DanhMucMoHinh.maMoHinh", ondelete="CASCADE", onupdate="CASCADE"))
 
     camera = relationship("Camera", back_populates="videos")
     danhmucmohinh = relationship("DanhMucMoHinh", back_populates="videos")
