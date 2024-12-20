@@ -6,6 +6,7 @@ from database.connect_db._database_mysql import SessionLocal
 from database.dependencies.dependencies import get_db
 from fastapi.responses import JSONResponse
 
+
 router = APIRouter(
     prefix="/api/v1/user",
     tags=["user"],
