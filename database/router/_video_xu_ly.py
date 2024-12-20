@@ -5,6 +5,7 @@ from database.dependencies.dependencies import get_db
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from database.schemas._video_xu_ly import VideoDelete, VideoUpdate
 from database.models.Camera import Camera
 from database.models.DanhMucPhanLoaiRac import DanhMucPhanLoaiRac
 from database.models.DanhMucMoHinh import DanhMucMoHinh
@@ -68,3 +69,81 @@ def get_video_process_data(db: Session = Depends(get_db)):
         )
     except Exception as e:
         return JSONResponse({"status": 500, "message": f"Lỗi hệ thống! + {e}"})
+
+
+@router.post("/delete_video")
+def delete_video(request: VideoDelete, db: Session = Depends(get_db)):
+    try:
+        # Kiểm tra xem mã mô hình có tồn tại không
+        idVideo = request.idVideo
+
+        video = db.query(VideoXuLy).filter_by(maVideo=idVideo).first()
+        if not video:
+            return JSONResponse(
+                content={
+                    "status": 404,
+                    "message": f"Mã {idVideo} không tồn tại.",
+                },
+                status_code=404,
+            )
+
+        # Xóa dòng trong bảng DanhMucMoHinh
+        db.delete(video)
+        db.commit()
+
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": f"Xóa mã {idVideo} thành công.",
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
+
+
+@router.post("/update_process_video_data")
+def update_process_video_data(request: VideoUpdate, db: Session = Depends(get_db)):
+    try:
+        data = request.dataVideo
+        
+        id_video = data.get("maVideo")
+        if not id_video:
+            return JSONResponse(
+                content={"status": 400, "message": "Thiếu mã video để cập nhật."},
+                status_code=400,
+            )
+
+        video = db.query(VideoXuLy).filter_by(maVideo=id_video).first()
+        if not video:
+            return JSONResponse(
+                content={"status": 404, "message": "Video không tồn tại."},
+                status_code=404,
+            )
+
+        if "moTa" in data:
+            video.moTa = data["moTa"]
+
+        # Ghi cập nhật vào database
+        db.commit()
+
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": "Cập nhật mô tả thành công.",
+                "data": {
+                    "moTa": video.moTa,
+                },
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
