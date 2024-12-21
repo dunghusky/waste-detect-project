@@ -39,7 +39,7 @@ def get_waste_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maRacThai": row.maRacThai,
                 "tenRacThai": row.tenRacThai,
                 "maRacThaiQuyChieu": row.maRacThaiQuyChieu,
                 "danhMuc": row.tenDanhMuc,
@@ -47,7 +47,7 @@ def get_waste_data(db: Session = Depends(get_db)):
                 "hinhAnh": row.hinhAnh,
                 "ghiChu": row.ghiChu,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(
