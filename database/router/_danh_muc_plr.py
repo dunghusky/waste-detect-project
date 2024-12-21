@@ -39,14 +39,14 @@ def get_waste_category_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maDanhMuc": row.maDanhMuc,
                 "tenDanhMuc": row.tenDanhMuc,
                 "maDanhMucQuyChieu": row.maDanhMucQuyChieu,
                 "tongSoLuongDaXuLy": int(row.tongSoLuongDaXuLy or 0),
                 "hinhAnh": row.hinhAnh,
                 "ghiChu": row.ghiChu,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(
@@ -65,7 +65,7 @@ def get_waste_category_data(db: Session = Depends(get_db)):
 def delete_waste_category(request: CategoryWasteDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
-        idWasteC = request.idModel
+        idWasteC = request.idWasteCategory
 
         category = db.query(DanhMucPhanLoaiRac).filter_by(maDanhMuc=idWasteC).first()
         if not category:
