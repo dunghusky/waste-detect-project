@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class ProcessWasteDelete(BaseModel):
-    idCamera: int
+    idVideo: int
     idWaste: int
 
 

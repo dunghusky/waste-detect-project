@@ -37,13 +37,14 @@ def get_video_detail_process_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maVideo": row.maVideo,
+                "maRacThai": row.maRacThai,
                 "tenVideo": row.tenVideo,
                 "tenRacThai": row.tenRacThai,
                 "soLuongXuLy": row.soLuongXuLy,
                 "ghiChu": row.ghiChu,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(
@@ -62,15 +63,19 @@ def get_video_detail_process_data(db: Session = Depends(get_db)):
 def delete_details_waste(request: ProcessWasteDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
-        idCamera = request.idCamera
+        idVideo = request.idVideo
         idWaste  = request.idWaste
 
-        camera = db.query(ChiTietXuLyRac).filter_by(maCamera=idCamera, maVideo=idWaste).first()
+        camera = (
+            db.query(ChiTietXuLyRac)
+            .filter_by(maVideo=idVideo, maRacThai=idWaste)
+            .first()
+        )
         if not camera:
             return JSONResponse(
                 content={
                     "status": 404,
-                    "message": f"Mã {idCamera} {idWaste} không tồn tại.",
+                    "message": f"Mã {idVideo} {idWaste} không tồn tại.",
                 },
                 status_code=404,
             )
@@ -82,7 +87,7 @@ def delete_details_waste(request: ProcessWasteDelete, db: Session = Depends(get_
         return JSONResponse(
             content={
                 "status": 200,
-                "message": f"Xóa mã {idCamera} {idWaste} thành công.",
+                "message": f"Xóa mã {idVideo} {idWaste} thành công.",
             },
             status_code=200,
         )
@@ -100,7 +105,7 @@ def update_details_wastes_data(
 ):
     try:
         data = request.dataProcessWaste
-        
+
         id_video = data.get("maVideo")
         id_waste = data.get("maRacThai")
 

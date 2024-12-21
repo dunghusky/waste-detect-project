@@ -38,7 +38,7 @@ def get_video_process_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maVideo": row.maVideo,
                 "tenVideo": row.tenVideo,
                 "thoiLuong": row.thoiLuong,
                 "ngayBatDauQuay": (
@@ -56,7 +56,7 @@ def get_video_process_data(db: Session = Depends(get_db)):
                 "tenMoHinh": row.tenMoHinh,
                 "moTa": row.moTa,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(

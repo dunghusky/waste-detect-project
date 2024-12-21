@@ -34,13 +34,13 @@ def get_camera_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maCamera": row.maCamera,
                 "tenCamera": row.tenCamera,
                 "diaDiem": row.diaDiem,
                 "trangThaiHoatDong": row.trangThaiHoatDong,
                 "moTa": row.moTa,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(

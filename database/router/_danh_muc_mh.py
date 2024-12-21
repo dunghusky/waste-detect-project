@@ -32,12 +32,12 @@ def get_model_category_data(db: Session = Depends(get_db)):
         # Xử lý kết quả
         data = [
             {
-                "STT": index + 1,
+                "maMoHinh": row.maMoHinh,
                 "tenMoHinh": row.tenMoHinh,
                 "duongDan": row.duongDan,
                 "ghiChu": row.ghiChu,
             }
-            for index, row in enumerate(result)
+            for row in result
         ]
 
         return JSONResponse(
