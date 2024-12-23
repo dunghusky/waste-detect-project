@@ -9,7 +9,7 @@ import uvicorn
 
 from yolo_model.controllers import (
     _stream_detect,
-    _upload_video_s3,
+    _upload_s3,
     _save_to_db,
     _trigger_to_db,
 )
@@ -68,7 +68,7 @@ def stop():
                 logger.info(f"File video được tạo: {state.output_file}")
                 print(f"\n\nLink: {state.output_file}")
 
-                converted_video_file = _upload_video_s3.convert_video_to_mp4(state.output_file)
+                converted_video_file = _upload_s3.convert_video_to_mp4(state.output_file)
                 state.output_file = converted_video_file  # Cập nhật lại state.output_file
 
                 # Đảm bảo video đã chuyển đổi xong
@@ -80,14 +80,14 @@ def stop():
                         }
                     )
 
-                video_url = _upload_video_s3.upload_video_to_s3(state.output_file)
+                video_url = _upload_s3.upload_file_to_s3(state.output_file)
                 print("\nVideo: ", video_url)
 
                 # Thay đổi URL từ S3 URL sang CloudFront URL
                 # cloudfront_base_url = _constants.CLOUDFRONT_BASE_URL
                 # video_file_key = video_url.split("/")[-1]  # Lấy tên file từ S3 URL
                 # cloudfront_url = f"{cloudfront_base_url}{video_file_key}"
-                cloudfront_url = _upload_video_s3.convert_cloudfront_link(video_url)
+                cloudfront_url = _upload_s3.convert_cloudfront_link(video_url)
                 print("\nVideo: ", cloudfront_url)
 
                 global video_url_storage
