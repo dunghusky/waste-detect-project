@@ -47,7 +47,7 @@ def add_waste(
 
             # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
         link_img = _upload_s3.upload_file_to_s3(temp_file_path)
-         # Xóa file tạm sau khi upload
+        # Xóa file tạm sau khi upload
         os.remove(temp_file_path)
         img_url = _upload_s3.convert_cloudfront_link(link_img)
         # Tìm mã danh mục (maDanhMuc) dựa trên tên danh mục (categoryName)
@@ -85,7 +85,8 @@ def add_waste(
                 "data": {
                     "maRacThai": new_waste.maRacThai,
                     "tenRacThai": new_waste.tenRacThai,
-                    "maDanhMuc": category.tenDanhMuc,
+                    "maDanhMuc": category.maDanhMuc,
+                    "tenDanhMuc": category.tenDanhMuc,
                     "ghiChu": new_waste.ghiChu,
                     "hinhAnh": new_waste.hinhAnh,
                 },
