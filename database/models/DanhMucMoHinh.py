@@ -6,7 +6,7 @@ class DanhMucMoHinh(Base):
     __tablename__ = "DanhMucMoHinh"
 
     maMoHinh = Column(Integer, primary_key=True, autoincrement=True)
-    tenMoHinh = Column(String(1000), nullable=False)
+    tenMoHinh = Column(String(1000), nullable=False, unique=True)
     duongDan = Column(String(1000))
     ghiChu = Column(String(1000))
 
