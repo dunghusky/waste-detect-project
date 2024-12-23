@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Form
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -17,6 +18,55 @@ router = APIRouter(
     prefix="/api/v1/camera",
     tags=["camera"],
 )
+
+
+@router.post("/add_camera")
+def add_camera(
+    cameraName: str = Form(...),
+    note: Optional[str] = Form(None),
+    isStatus: Optional[str] = Form(None),
+    address: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    try:
+        if isStatus:
+            status_value = int(isStatus)
+        else:
+            status_value = 1
+        # Thêm dữ liệu vào bảng RacThai
+        new_camera = Camera(
+            tenCamera=cameraName,
+            diaDiem=address,
+            trangThaiHoatDong=status_value,
+            moTa=note,
+        )
+
+        # Lưu vào database
+        db.add(new_camera)
+        db.commit()
+        db.refresh(new_camera)
+
+        # Trả về kết quả
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": "Thêm mới camera thành công.",
+                "data": {
+                    "maCamera": new_camera.maCamera,
+                    "tenCamera": new_camera.tenCamera,
+                    "diaDiem": new_camera.diaDiem,
+                    "trangThaiHoatDong": new_camera.trangThaiHoatDong,
+                    "moTa": new_camera.moTa,
+                },
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
 
 
 @router.get("/camera_data")  # chưa test

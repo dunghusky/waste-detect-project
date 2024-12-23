@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Form
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -17,6 +18,49 @@ router = APIRouter(
     prefix="/api/v1/model-category",
     tags=["model-category"],
 )
+
+
+@router.post("/add_model_category")
+def add_model_category(
+    modelName: str = Form(...),
+    note: Optional[str] = Form(None),
+    link: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    try:
+        # Thêm dữ liệu vào bảng RacThai
+        new_model = DanhMucMoHinh(
+            tenMoHinh=modelName,
+            duongDan=link,
+            ghiChu=note,
+        )
+
+        # Lưu vào database
+        db.add(new_model)
+        db.commit()
+        db.refresh(new_model)
+
+        # Trả về kết quả
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": "Thêm mới mô hình thành công.",
+                "data": {
+                    "maMoHinh": new_model.maMoHinh,
+                    "tenMoHinh": new_model.tenMoHinh,
+                    "duongDan": new_model.duongDan,
+                    "ghiChu": new_model.ghiChu,
+                },
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
+
 
 @router.get("/model_category_data")  # chưa test
 def get_model_category_data(db: Session = Depends(get_db)):

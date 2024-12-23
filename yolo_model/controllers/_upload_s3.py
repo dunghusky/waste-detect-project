@@ -37,11 +37,10 @@ def s3_upload(contents: bytes, key: str, mime_type: str):
         raise
 
 
-def upload_video_to_s3(output_file: str):
+def upload_file_to_s3(output_file: str):
     """
     Upload video lên S3 và trả về URL của video.
     """
-    print("\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     with open(output_file, "rb") as video_file:
         file_contents = video_file.read()
 
@@ -53,14 +52,11 @@ def upload_video_to_s3(output_file: str):
             file_extension = file_extension[
                 0
             ]  # Lấy phần mở rộng đầu tiên trong danh sách
-        print("\n file: ", file_extension)
         file_key = f"{uuid.uuid4()}.{file_extension}"
 
-        video_url = s3_upload(
-            contents=file_contents, key=file_key, mime_type="video/mp4"
-        )
+        file_url = s3_upload(contents=file_contents, key=file_key, mime_type=file_type)
 
-    return video_url
+    return file_url
 
 
 # Thay đổi URL từ S3 URL sang CloudFront URL
