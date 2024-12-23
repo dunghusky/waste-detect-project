@@ -12,7 +12,7 @@ from yolo_model.manage.StateManager import state
 from yolo_model.manage.WebcamStream import WebcamStream
 from yolo_model.manage.YOLOWorker import YOLOWorker
 from config import _create_file, _constants
-from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
+from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 
 def parse_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description="Yolov8 live camera")

@@ -1,3 +1,5 @@
+from typing import Union
+from fastapi import UploadFile
 from pydantic import BaseModel
 
 
@@ -7,3 +9,5 @@ class WasteDelete(BaseModel):
 
 class WasteUpdate(BaseModel):
     dataWaste: dict
+
+
