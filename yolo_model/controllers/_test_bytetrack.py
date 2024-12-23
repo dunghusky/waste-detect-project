@@ -16,7 +16,7 @@ from yolox.tracker.byte_tracker import BYTETracker, STrack
 from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
 from config import _create_file
-from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
+from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 from typing import List
 
 import numpy as np

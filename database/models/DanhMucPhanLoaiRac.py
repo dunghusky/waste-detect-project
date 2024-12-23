@@ -7,7 +7,7 @@ class DanhMucPhanLoaiRac(Base):
     __tablename__ = "DanhMucPhanLoaiRac"
 
     maDanhMuc = Column(Integer, primary_key=True, autoincrement=True)
-    tenDanhMuc = Column(String(1000), nullable=False)
+    tenDanhMuc = Column(String(1000), nullable=False, unique=True)
     maDanhMucQuyChieu = Column(String(1000), nullable=False)
     hinhAnh = Column(String(1000))
     ghiChu = Column(String(1000))

@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+import os
+from typing import Optional, Union
+import uuid
+from fastapi import APIRouter, Depends, Form, UploadFile
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -12,11 +15,73 @@ from database.models.DanhMucMoHinh import DanhMucMoHinh
 from database.models.RacThai import RacThai
 from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
+from yolo_model.controllers import _upload_s3
 
 router = APIRouter(
     prefix="/api/v1/waste-category",
     tags=["waste-category"],
 )
+
+
+@router.post("/add_waste_category")
+def add_waste_category(
+    categoryName: str = Form(...),
+    note: Optional[str] = Form(None),
+    categoryId: str = Form(...),
+    img: Union[UploadFile, None] = None,
+    db: Session = Depends(get_db),
+):
+    try:
+        img_url = None
+        if img:
+            # Tạo thư mục tạm nếu chưa tồn tại
+            temp_dir = "/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # Lưu file tạm
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())  # Đọc file từ UploadFile
+
+            # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
+        link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+        # Xóa file tạm sau khi upload
+        os.remove(temp_file_path)
+        img_url = _upload_s3.convert_cloudfront_link(link_img)
+        # Thêm dữ liệu vào bảng RacThai
+        new_waste_category = DanhMucPhanLoaiRac(
+            tenDanhMuc=categoryName,
+            maDanhMucQuyChieu=categoryId,
+            ghiChu=note,
+            hinhAnh=img_url,
+        )
+
+        # Lưu vào database
+        db.add(new_waste_category)
+        db.commit()
+        db.refresh(new_waste_category)
+
+        # Trả về kết quả
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": "Thêm mới mô hình thành công.",
+                "data": {
+                    "maDanhMuc": new_waste_category.maDanhMuc,
+                    "tenDanhMuc": new_waste_category.tenDanhMuc,
+                    "maDanhMucQuyChieu": new_waste_category.maDanhMucQuyChieu,
+                    "ghiChu": new_waste_category.ghiChu,
+                },
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
 
 
 @router.get("/waste_category_data") 

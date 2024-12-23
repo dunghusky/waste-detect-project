@@ -35,13 +35,22 @@ from yolo_model.controllers import _save_to_db
 #             .first()
 #         )
 # print(result)
-file = "output_20241217_221822"
-cloudfront_url=  "https://d3cnmk90vb0eje.cloudfront.net/421aada1-d634-4ad9-98d2-0b6b7510278d.mp4"
-start_time="2024-12-17 22:18:08.330587"
+# file = "output_20241217_221822"
+# cloudfront_url=  "https://d3cnmk90vb0eje.cloudfront.net/421aada1-d634-4ad9-98d2-0b6b7510278d.mp4"
+# start_time="2024-12-17 22:18:08.330587"
 
-end_time= "2024-12-17 22:18:46.458299"
+# end_time= "2024-12-17 22:18:46.458299"
 
-video_duration="38.127712"
-# id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
-_save_to_db.save_details_wastes_process_db('1', '1', 10, )
-print(id)
+# video_duration="38.127712"
+# # id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
+# _save_to_db.save_details_wastes_process_db('1', '1', 10, )
+# print(id)
+
+from yolo_model.controllers import _upload_s3
+
+file = "./file_path/video_stream/output_20241204_211047_converted.mp4"
+
+up = _upload_s3.upload_img_to_s3(file)
+print("\n ", up)
+test = _upload_s3.convert_cloudfront_link(up)
+print(test)

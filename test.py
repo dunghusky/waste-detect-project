@@ -18,7 +18,7 @@ from inference import InferencePipeline
 from inference.core.interfaces.camera.entities import VideoFrame
 from config._timers import find_in_list
 from config import _create_file
-from yolo_model.controllers._upload_video_s3 import convert_video_to_mp4 as convert_mp4
+from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 from typing import List, Tuple
 
 import numpy as np

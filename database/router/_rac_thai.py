@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+import os
+from typing import Optional, Union
+import uuid
+from fastapi import APIRouter, Depends, Form, UploadFile
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -13,10 +16,89 @@ from database.models.RacThai import RacThai
 from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
 
+from yolo_model.controllers import _upload_s3
 router = APIRouter(
     prefix="/api/v1/waste",
     tags=["waste"],
 )
+
+
+@router.post("/add_waste")
+def add_waste(
+    wasteName: str = Form(...),
+    note: Optional[str] = Form(None),
+    wasteId: str = Form(...),
+    categoryName: str = Form(...),
+    img: Union[UploadFile, None] = None,
+    db: Session = Depends(get_db),
+):
+    try:
+        img_url = None
+        if img:
+            # Tạo thư mục tạm nếu chưa tồn tại
+            temp_dir = "/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # Lưu file tạm
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())  # Đọc file từ UploadFile
+
+            # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
+        link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+        # Xóa file tạm sau khi upload
+        os.remove(temp_file_path)
+        img_url = _upload_s3.convert_cloudfront_link(link_img)
+        # Tìm mã danh mục (maDanhMuc) dựa trên tên danh mục (categoryName)
+        category = (
+            db.query(DanhMucPhanLoaiRac).filter_by(tenDanhMuc=categoryName).first()
+        )
+        if not category:
+            return JSONResponse(
+                content={
+                    "status": 404,
+                    "message": f"Danh mục '{categoryName}' không tồn tại.",
+                },
+                status_code=404,
+            )
+
+        # Thêm dữ liệu vào bảng RacThai
+        new_waste = RacThai(
+            tenRacThai=wasteName,
+            ghiChu=note,
+            hinhAnh=img_url,
+            maRacThaiQuyChieu=wasteId,
+            maDanhMuc=category.maDanhMuc,
+        )
+
+        # Lưu vào database
+        db.add(new_waste)
+        db.commit()
+        db.refresh(new_waste)
+
+        # Trả về kết quả
+        return JSONResponse(
+            content={
+                "status": 200,
+                "message": "Thêm mới rác thải thành công.",
+                "data": {
+                    "maRacThai": new_waste.maRacThai,
+                    "tenRacThai": new_waste.tenRacThai,
+                    "maDanhMuc": category.maDanhMuc,
+                    "tenDanhMuc": category.tenDanhMuc,
+                    "ghiChu": new_waste.ghiChu,
+                    "hinhAnh": new_waste.hinhAnh,
+                },
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
+            status_code=500,
+        )
 
 
 @router.get("/waste_data")
@@ -25,12 +107,12 @@ def get_waste_data(db: Session = Depends(get_db)):
 
         query = text(
             """
-            SELECT r.maRacThai, r.tenRacThai, r.maRacThaiQuyChieu, 
+            SELECT r.maRacThai, r.tenRacThai, r.maRacThaiQuyChieu, d.maDanhMuc,
                 d.tenDanhMuc, SUM(c.soLuongXuLy) AS tongSoLuongDaXuLy, r.ghiChu, r.hinhAnh
             FROM RacThai r
             JOIN DanhMucPhanLoaiRac d ON r.maDanhMuc = d.maDanhMuc
             LEFT JOIN ChiTietXuLyRac c ON r.maRacThai = c.maRacThai
-            GROUP BY r.maRacThai, r.tenRacThai, r.maRacThaiQuyChieu, d.tenDanhMuc, r.ghiChu, r.hinhAnh
+            GROUP BY r.maRacThai, r.tenRacThai, r.maRacThaiQuyChieu, d.tenDanhMuc, r.ghiChu, r.hinhAnh, d.maDanhMuc
         """
         )
 
@@ -40,6 +122,7 @@ def get_waste_data(db: Session = Depends(get_db)):
         data = [
             {
                 "maRacThai": row.maRacThai,
+                "maDanhMuc": row.maDanhMuc,
                 "tenRacThai": row.tenRacThai,
                 "maRacThaiQuyChieu": row.maRacThaiQuyChieu,
                 "danhMuc": row.tenDanhMuc,

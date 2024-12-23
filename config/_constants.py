@@ -10,6 +10,8 @@ SUPPORT_FILE_TYPES = {
     "video/mp4": "mp4",
     "video/avi": "avi",
     "video/mkv": "mkv",
+    "image/png": "png",
+    "image/jpeg": ["jpg", "jpeg"],
 }
 
 CLOUDFRONT_BASE_URL = "https://d3cnmk90vb0eje.cloudfront.net/"
