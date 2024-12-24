@@ -46,10 +46,10 @@ def add_waste(
                 f.write(img.file.read())  # Đọc file từ UploadFile
 
             # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
-        link_img = _upload_s3.upload_file_to_s3(temp_file_path)
-        # Xóa file tạm sau khi upload
-        os.remove(temp_file_path)
-        img_url = _upload_s3.convert_cloudfront_link(link_img)
+            link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+            # Xóa file tạm sau khi upload
+            os.remove(temp_file_path)
+            img_url = _upload_s3.convert_cloudfront_link(link_img)
         # Tìm mã danh mục (maDanhMuc) dựa trên tên danh mục (categoryName)
         category = (
             db.query(DanhMucPhanLoaiRac).filter_by(tenDanhMuc=categoryName).first()
