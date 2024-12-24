@@ -45,10 +45,10 @@ def add_waste_category(
                 f.write(img.file.read())  # Đọc file từ UploadFile
 
             # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
-        link_img = _upload_s3.upload_file_to_s3(temp_file_path)
-        # Xóa file tạm sau khi upload
-        os.remove(temp_file_path)
-        img_url = _upload_s3.convert_cloudfront_link(link_img)
+            link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+            # Xóa file tạm sau khi upload
+            os.remove(temp_file_path)
+            img_url = _upload_s3.convert_cloudfront_link(link_img)
         # Thêm dữ liệu vào bảng RacThai
         new_waste_category = DanhMucPhanLoaiRac(
             tenDanhMuc=categoryName,
@@ -72,6 +72,7 @@ def add_waste_category(
                     "tenDanhMuc": new_waste_category.tenDanhMuc,
                     "maDanhMucQuyChieu": new_waste_category.maDanhMucQuyChieu,
                     "ghiChu": new_waste_category.ghiChu,
+                    "hinhAnh": new_waste_category.hinhAnh,
                 },
             },
             status_code=200,

@@ -39,6 +39,8 @@ def get_video_process_data(db: Session = Depends(get_db)):
         data = [
             {
                 "maVideo": row.maVideo,
+                "maCamera": row.maCamera,
+                "maMoHinh": row.maMoHinh,
                 "tenVideo": row.tenVideo,
                 "thoiLuong": row.thoiLuong,
                 "ngayBatDauQuay": (
