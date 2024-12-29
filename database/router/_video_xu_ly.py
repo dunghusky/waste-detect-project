@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Form
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -26,7 +27,7 @@ def get_video_process_data(db: Session = Depends(get_db)):
         query = text(
             """
             SELECT v.maVideo, v.tenVideo, v.thoiLuong, v.ngayBatDauQuay, v.ngayKetThuc,
-                v.moTa, v.duongDan, c.tenCamera, m.tenMoHinh
+                v.moTa, v.duongDan, c.tenCamera, m.tenMoHinh, c.maCamera, m.maMoHinh
             FROM VideoXuLy v
             LEFT JOIN Camera c ON v.maCamera = c.maCamera
             LEFT JOIN DanhMucMoHinh m ON v.maMoHinh = m.maMoHinh
@@ -109,41 +110,34 @@ def delete_video(request: VideoDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_process_video_data")
-def update_process_video_data(request: VideoUpdate, db: Session = Depends(get_db)):
+def update_process_video_data(
+    id_video: int = Form(...),
+    note: Optional[str] = Form(None),
+    db: Session = Depends(get_db)):
     try:
-        data = request.dataVideo
-        
-        id_video = data.get("maVideo")
-        if not id_video:
-            return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã video để cập nhật."},
-                status_code=400,
-            )
-
+        # Tìm rác thải dựa trên ID
         video = db.query(VideoXuLy).filter_by(maVideo=id_video).first()
         if not video:
             return JSONResponse(
-                content={"status": 404, "message": "Video không tồn tại."},
+                content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
+        if note:
+            video.moTa = note
 
-        if "moTa" in data:
-            video.moTa = data["moTa"]
-
-        # Ghi cập nhật vào database
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Cập nhật mô tả thành công.",
+                "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
                     "moTa": video.moTa,
                 },
             },
             status_code=200,
         )
-
     except Exception as e:
         return JSONResponse(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
