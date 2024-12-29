@@ -42,7 +42,7 @@ def video_feed():
         return JSONResponse({"status": 500, "message": "Lỗi hệ thống!"})
 
 
-@router.post("/stop",)
+@router.post("/stop")
 def stop():
     try:
         state.terminate_flag = True
@@ -176,6 +176,6 @@ def get_video_url():
         return JSONResponse({"status": 500, "message": f"Lỗi hệ thống: {str(e)}"})
 
 
-# @router.get("/view-labels")
-# async def view_labels():
-#     return {"received_labels": received_labels}
+@router.get("/view-labels")
+async def view_labels():
+    return {"received_labels": received_labels}

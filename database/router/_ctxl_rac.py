@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Form
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -101,48 +102,36 @@ def delete_details_waste(request: ProcessWasteDelete, db: Session = Depends(get_
 
 @router.post("/update_details_wastes_data")
 def update_details_wastes_data(
-    request: ProcessWasteUpdate, db: Session = Depends(get_db)
+    id_video: int = Form(...),
+    id_waste: int = Form(...),
+    note: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
 ):
     try:
-        data = request.dataProcessWaste
-
-        id_video = data.get("maVideo")
-        id_waste = data.get("maRacThai")
-
-        if not id_video or not id_waste:
+        # Tìm rác thải dựa trên ID
+        details = db.query(ChiTietXuLyRac).filter_by(maVideo=id_video, maRacThai=id_waste).first()
+        if not details:
             return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã để cập nhật."},
-                status_code=400,
-            )
-
-        process = (
-            db.query(ChiTietXuLyRac)
-            .filter_by(maVideo=id_video, maRacThai=id_waste)
-            .first()
-        )
-        if not process:
-            return JSONResponse(
-                content={"status": 404, "message": "Bảng không tồn tại."},
+                content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
 
-        if "ghiChu" in data:
-            process.ghiChu = data["ghiChu"]
+        if note:
+            details.ghiChu = note
 
-        # Ghi cập nhật vào database
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Cập nhật mô tả thành công.",
+                "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
-                    "ghiChu": process.ghiChu,
+                    "moTa": details.ghiChu,
                 },
             },
             status_code=200,
         )
-
     except Exception as e:
         return JSONResponse(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
