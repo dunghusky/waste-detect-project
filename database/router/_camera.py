@@ -141,50 +141,50 @@ def delete_camera(request: CameraDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_camera_data")
-def update_camera_data(request: CameraUpdate, db: Session = Depends(get_db)):
+def update_camera_data(
+    id_camera: int = Form(...),
+    cameraName: str = Form(None),
+    note: Optional[str] = Form(None),
+    isStatus: Optional[str] = Form(None),
+    address: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
     try:
-        data = request.dataCamera
-        
-        id_camera = data.get("maCamera")
-        if not id_camera:
+        # Tìm rác thải dựa trên ID
+        camera = db.query(Camera).filter_by(maCamera=id_camera).first()
+        if not camera:
             return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã camera để cập nhật."},
-                status_code=400,
-            )
-
-        category = db.query(Camera).filter_by(maCamera=id_camera).first()
-        if not category:
-            return JSONResponse(
-                content={"status": 404, "message": "Danh mục không tồn tại."},
+                content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
 
-        if "tenCamera" in data:
-            category.tenCamera = data["tenCamera"]
-        if "diaDiem" in data:
-            category.diaDiem = data["diaDiem"]
-        if "trangThaiHoatDong" in data:
-            category.trangThaiHoatDong = data["trangThaiHoatDong"]
-        if "moTa" in data:
-            category.moTa = data["moTa"]
+        # Cập nhật các trường khác nếu có
+        if cameraName:
+            camera.tenCamera = cameraName
+        if note:
+            camera.moTa = note
+        if isStatus:
+            camera.trangThaiHoatDong = isStatus
+        if address:
+            camera.diaDiem = address
 
-        # Ghi cập nhật vào database
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Cập nhật camera thành công.",
+                "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
-                    "maCamera": category.maCamera,
-                    "tenCamera": category.tenCamera,
-                    "diaDiem": category.diaDiem,
-                    "moTa": category.moTa,
+                    "maCamera": camera.maCamera,
+                    "tenCamera": camera.tenCamera,
+                    "diaDiem": camera.diaDiem,
+                    "moTa": camera.moTa,
+                    "trangThaiHoatDong": camera.trangThaiHoatDong
                 },
             },
             status_code=200,
         )
-
     except Exception as e:
         return JSONResponse(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},

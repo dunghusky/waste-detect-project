@@ -133,49 +133,45 @@ def delete_model_category(request: CategoryModelDelete, db: Session = Depends(ge
 
 @router.post("/update_model_category_data")
 def update_model_category_data(
-    request: CategoryModelUpdate, db: Session = Depends(get_db)
+    id_model: int = Form(...),
+    modelName: str = Form(None),
+    note: Optional[str] = Form(None),
+    link: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
 ):
     try:
-        data = request.dataCategoryModel
-        
-        id_model_category = data.get("maMoHinh")
-        if not id_model_category:
+        # Tìm rác thải dựa trên ID
+        model = db.query(DanhMucMoHinh).filter_by(maMoHinh=id_model).first()
+        if not model:
             return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã mô hình để cập nhật."},
-                status_code=400,
-            )
-
-        category = db.query(DanhMucMoHinh).filter_by(maMoHinh=id_model_category).first()
-        if not category:
-            return JSONResponse(
-                content={"status": 404, "message": "Danh mục không tồn tại."},
+                content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
 
-        if "tenMoHinh" in data:
-            category.tenMoHinh = data["tenMoHinh"]
-        if "duongDan" in data:
-            category.duongDan = data["duongDan"]
-        if "ghiChu" in data:
-            category.ghiChu = data["ghiChu"]
+        # Cập nhật các trường khác nếu có
+        if modelName:
+            model.tenMoHinh = modelName
+        if note:
+            model.ghiChu = note
+        if link:
+            model.duongDan = link
 
-        # Ghi cập nhật vào database
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Cập nhật danh mục mô hình thành công.",
+                "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
-                    "maMoHinh": category.maMoHinh,
-                    "tenMoHinh": category.tenMoHinh,
-                    "duongDan": category.duongDan,
-                    "ghiChu": category.ghiChu,
+                    "maMoHinh": model.maMoHinh,
+                    "tenMoHinh": model.tenMoHinh,
+                    "duongDan": model.duongDan,
+                    "ghiChu": model.ghiChu,
                 },
             },
             status_code=200,
         )
-
     except Exception as e:
         return JSONResponse(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},

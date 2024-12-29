@@ -3,7 +3,7 @@ from supervision import Point
 # --------------------File Path------------------------#
 VIDEO_PATH = "./file_path/video_stream"
 
-AWS_BUCKET_NAME = "barberbuddy"
+AWS_BUCKET_NAME = "myawbucket1gg"
 
 
 SUPPORT_FILE_TYPES = {
@@ -14,10 +14,15 @@ SUPPORT_FILE_TYPES = {
     "image/jpeg": ["jpg", "jpeg"],
 }
 
-CLOUDFRONT_BASE_URL = "https://d3cnmk90vb0eje.cloudfront.net/"
+CLOUDFRONT_BASE_URL = (
+    "https://d5nvd4drtg1ie.cloudfront.net/"
+)
 
 LINE_START = Point(670, 0)
 LINE_END = Point(670, 750)
+
+LINE_START = Point(350, 0)
+LINE_END = Point(350, 650)
 
 WASTE_COUNT = {
     "chai-lo-manh-vo-thuy-tinh": 0,

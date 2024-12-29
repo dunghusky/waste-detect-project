@@ -164,46 +164,58 @@ def delete_waste_category(request: CategoryWasteDelete, db: Session = Depends(ge
 
 @router.post("/update_waste_category_data")  # chưa test
 def update_waste_category_data(
-    request: CategoryWasteUpdate, db: Session = Depends(get_db)
+    id_category: int = Form(...),
+    categoryName: str = Form(None),
+    note: Optional[str] = Form(None),
+    categoryId: str = Form(None),
+    img: Union[UploadFile, None] = None,
+    db: Session = Depends(get_db),
 ):
     try:
-        data = request.dataCategoryWaste
-        
-        id_waste_category = data.get("maDanhMuc")
-        if not id_waste_category:
-            return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã danh mục để cập nhật."},
-                status_code=400,
-            )
-
-        # Kiểm tra danh mục có tồn tại không
-        category = (
-            db.query(DanhMucPhanLoaiRac).filter_by(maDanhMuc=id_waste_category).first()
-        )
+        # Tìm rác thải dựa trên ID
+        category = db.query(DanhMucPhanLoaiRac).filter_by(maDanhMuc=id_category).first()
         if not category:
             return JSONResponse(
-                content={"status": 404, "message": "Danh mục không tồn tại."},
+                content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
 
-        # Cập nhật các trường
-        if "tenDanhMuc" in data:
-            category.tenDanhMuc = data["tenDanhMuc"]
-        if "maDanhMucQuyChieu" in data:
-            category.maDanhMucQuyChieu = data["maDanhMucQuyChieu"]
-        if "ghiChu" in data:
-            category.ghiChu = data["ghiChu"]
+        # Cập nhật hình ảnh nếu có
+        if img:
+            temp_dir = "/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
 
-        # Ghi cập nhật vào database
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())
+
+            try:
+                link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+                img_url = _upload_s3.convert_cloudfront_link(link_img)
+                category.hinhAnh = img_url
+            finally:
+                os.remove(temp_file_path)
+
+        # Cập nhật các trường khác nếu có
+        if categoryName:
+            category.tenDanhMuc = categoryName
+        if note:
+            category.ghiChu = note
+        if categoryId:
+            category.maDanhMucQuyChieu = categoryId
+
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
             content={
                 "status": 200,
-                "message": "Cập nhật danh mục rác thải thành công.",
+                "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
                     "maDanhMuc": category.maDanhMuc,
                     "tenDanhMuc": category.tenDanhMuc,
+                    "hinhAnh": category.hinhAnh,
                     "maDanhMucQuyChieu": category.maDanhMucQuyChieu,
                     "ghiChu": category.ghiChu,
                 },
