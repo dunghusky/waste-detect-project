@@ -3,6 +3,7 @@ import time
 import cv2
 import requests
 import argparse
+import torch
 
 from ultralytics import YOLO
 import supervision as sv
@@ -71,7 +72,9 @@ def initialize_yolo_and_annotators(model_path: str, LINE_START: sv.Point, LINE_E
     """
     Khởi tạo mô hình YOLO và các annotator.
     """
-    model = YOLO(model_path)
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    model = YOLO(model_path).to(device)
+    
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
     line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
@@ -113,7 +116,7 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
 # ----------------------------------------------------------------------------#
 
 def send_to_hardware_api(waste_label):
-    url = "http://127.0.0.1:8000/api/v1/stream/send-label"
+    url = "http://52.88.216.148:8000/api/v1/stream/send-label"
     payload = {"label": waste_label}
     try:
         response = requests.post(url, json=payload)
