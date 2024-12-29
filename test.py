@@ -329,5 +329,5 @@ def run_detection(stream_url):
 
 # # Chạy chương trình
 if __name__ == "__main__":
-    run_detection("rtmp://45.90.223.138:12586/live")
+    run_detection("https://fae9-113-22-86-22.ngrok-free.app/1")
     # run_detection("./output_frames/6779842421098717812.mp4")
