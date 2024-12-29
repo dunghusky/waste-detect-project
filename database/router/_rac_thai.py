@@ -181,18 +181,17 @@ def delete_waste(request: WasteDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_waste_data")
-def update_waste_data(request: WasteUpdate, db: Session = Depends(get_db)):
+def update_waste_data(
+    id_waste: int = Form(...),
+    wasteName: str = Form(None),
+    note: Optional[str] = Form(None),
+    wasteId: str = Form(None),
+    categoryName: str = Form(None),
+    img: Union[UploadFile, None] = None,
+    db: Session = Depends(get_db),
+):
     try:
-        data = request.dataWaste
-        
-        id_waste = data.get("maRacThai")
-        if not id_waste:
-            return JSONResponse(
-                content={"status": 400, "message": "Thiếu mã rác thải để cập nhật."},
-                status_code=400,
-            )
-
-        # Kiểm tra rác thải có tồn tại không
+        # Tìm rác thải dựa trên ID
         waste = db.query(RacThai).filter_by(maRacThai=id_waste).first()
         if not waste:
             return JSONResponse(
@@ -200,33 +199,47 @@ def update_waste_data(request: WasteUpdate, db: Session = Depends(get_db)):
                 status_code=404,
             )
 
-        # Ánh xạ tên danh mục sang mã danh mục
-        category_name = data.get("tenDanhMuc")
-        if category_name:
-            danh_muc = (
-                db.query(DanhMucPhanLoaiRac).filter_by(tenDanhMuc=category_name).first()
+        # Cập nhật danh mục nếu có
+        if categoryName:
+            category = (
+                db.query(DanhMucPhanLoaiRac).filter_by(tenDanhMuc=categoryName).first()
             )
-            if not danh_muc:
+            if not category:
                 return JSONResponse(
                     content={
                         "status": 404,
-                        "message": f"Danh mục '{category_name}' không tồn tại.",
+                        "message": f"Danh mục '{categoryName}' không tồn tại.",
                     },
                     status_code=404,
                 )
-            waste.maDanhMuc = danh_muc.maDanhMuc
+            waste.maDanhMuc = category.maDanhMuc
 
-        # Cập nhật các trường khác
-        if "tenRacThai" in data:
-            waste.tenRacThai = data["tenRacThai"]
-        if "maRacThaiQuyChieu" in data:
-            waste.maRacThaiQuyChieu = data["maRacThaiQuyChieu"]
-        if "ghiChu" in data:
-            waste.ghiChu = data["ghiChu"]
-        if "hinhAnh" in data:
-            waste.hinhAnh = data["hinhAnh"]
+        # Cập nhật hình ảnh nếu có
+        if img:
+            temp_dir = "/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
 
-        # Ghi cập nhật vào database
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())
+
+            try:
+                link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+                img_url = _upload_s3.convert_cloudfront_link(link_img)
+                waste.hinhAnh = img_url
+            finally:
+                os.remove(temp_file_path)
+
+        # Cập nhật các trường khác nếu có
+        if wasteName:
+            waste.tenRacThai = wasteName
+        if note:
+            waste.ghiChu = note
+        if wasteId:
+            waste.maRacThaiQuyChieu = wasteId
+
+        # Lưu thay đổi vào database
         db.commit()
 
         return JSONResponse(
@@ -235,11 +248,11 @@ def update_waste_data(request: WasteUpdate, db: Session = Depends(get_db)):
                 "message": "Cập nhật thông tin rác thải thành công.",
                 "data": {
                     "maRacThai": waste.maRacThai,
-                    "tenRacThai": waste.tenRacThai,
                     "maRacThaiQuyChieu": waste.maRacThaiQuyChieu,
-                    "ghiChu": waste.ghiChu,
+                    "tenRacThai": waste.tenRacThai,
                     "maDanhMuc": waste.maDanhMuc,
-                    "tenDanhMuc": category_name,
+                    "tenDanhMuc": categoryName,
+                    "ghiChu": waste.ghiChu,
                     "hinhAnh": waste.hinhAnh,
                 },
             },
