@@ -76,6 +76,8 @@ def initialize_yolo_and_annotators(
     Khởi tạo mô hình YOLO và các annotator.
     """
     device = "cuda:1" if torch.cuda.is_available() else "cpu"
+    print("Thiết bị đang được sử dụng:", device)
+    
     model = YOLO(model_path).to(device)
 
     box_annotator = sv.BoxAnnotator(thickness=2)
@@ -186,10 +188,10 @@ def generate_stream(stream_url):
                 print("Không nhận được khung hình.")
                 break
 
-            # Điều chỉnh FPS động
+            # Đợi nếu cần để giữ đồng bộ FPS
             elapsed_time = time.time() - start_time
-            fps_delay = max(1.0 / fps - elapsed_time, 0)
-            time.sleep(fps_delay)
+            if elapsed_time < 1.0 / fps:
+                time.sleep(1.0 / fps - elapsed_time)
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)

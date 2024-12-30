@@ -35,18 +35,27 @@ from yolo_model.controllers import _save_to_db
 #             .first()
 #         )
 # print(result)
-file = "output_20241230_133125"
+file_name = "output_20241230_214454"
 cloudfront_url = (
-    "https://d5nvd4drtg1ie.cloudfront.net/2d13fef9-3d5c-48ee-8d26-609991a06ed3.mp4"
+    "https://d5nvd4drtg1ie.cloudfront.net/93b3d5ef-b178-4038-93dd-19a7f36d5446.mp4"
 )
-start_time = "2024-12-30 11:43:08.389374"
+start_time = "2024-12-30 21:44:41"
 
-end_time = "2024-12-30 11:44:45.916455"
+end_time = "2024-12-30 21:47:41"
 
-video_duration = "97.5270812"
-id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
-# _save_to_db.save_details_wastes_process_db('1', '1', 10, )
-print(id)
+video_duration = "180.872417"
+# id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
+# # _save_to_db.save_details_wastes_process_db('1', '1', 10, )
+# print(id)
+
+idVideo = _save_to_db.save_video_process_db(
+    file_name,
+    cloudfront_url,
+    start_time,
+    end_time,
+    video_duration,
+)
+print("\nLưu video thành công, id_video: ", idVideo)
 
 # from yolo_model.controllers import _upload_s3
 
