@@ -16,6 +16,7 @@ def save_video_process_db(file_name ,cloudfront_url, start_time, end_time, video
         print("\nend_time: ", end_time)
         print("\nvideo_duration: ", video_duration)
         with next(get_db()) as db:
+            print("aaaaaaaaaaaaaaaa")
             new_record = VideoXuLy(
                 tenVideo=file_name,  # Lưu đường dẫn video
                 thoiLuong=video_duration,  # Thời gian quay video
@@ -26,6 +27,7 @@ def save_video_process_db(file_name ,cloudfront_url, start_time, end_time, video
                 maCamera=1,
                 maMoHinh=1,
             )
+            print("\nNew reoced: ", new_record)
             db.add(new_record)
             db.commit()
             db.refresh(new_record)  # Làm mới đối tượng để lấy ID tự động tăng
