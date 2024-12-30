@@ -267,8 +267,8 @@ def run_detection(stream_url):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    LINE_START = Point(670, 0)
-    LINE_END = Point(670, 750)
+    LINE_START = Point(350, 0)
+    LINE_END = Point(350, 650)
 
     byte_tracker = sv.ByteTrack()
 
@@ -329,5 +329,5 @@ def run_detection(stream_url):
 
 # # Chạy chương trình
 if __name__ == "__main__":
-    run_detection("https://fae9-113-22-86-22.ngrok-free.app/1")
+    run_detection("rtmp://45.90.223.138:12586/live")
     # run_detection("./output_frames/6779842421098717812.mp4")
