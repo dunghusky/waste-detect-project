@@ -94,25 +94,33 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     """
     Mở luồng video từ URL và thiết lập độ phân giải.
     """
-    webcam_stream = WebcamStream(stream_id = stream_url)
-    webcam_stream.start()
+    # webcam_stream = WebcamStream(stream_id = stream_url)
+    # webcam_stream.start()
 
-    actual_width = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    actual_height = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(
-        f"Kích thước thực tế của luồng video: {int(actual_width)}x{int(actual_height)}"
-    )
+    # actual_width = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    # actual_height = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    # print(
+    #     f"Kích thước thực tế của luồng video: {int(actual_width)}x{int(actual_height)}"
+    # )
 
-    fps = webcam_stream.vcap.get(cv2.CAP_PROP_FPS)  # Lấy FPS thực tế từ webcam stream
-    print(f"FPS của webcam/video stream: {fps}")
-    # cap = cv2.VideoCapture()
+    # fps = webcam_stream.vcap.get(cv2.CAP_PROP_FPS)  # Lấy FPS thực tế từ webcam stream
+    # print(f"FPS của webcam/video stream: {fps}")
+    cap = cv2.VideoCapture(stream_url)
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
-    # if not cap.isOpened():
-    #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
+    if not cap.isOpened():
+        raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
 
-    return webcam_stream, fps
+    actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    print(f"Kích thước thực tế của luồng video: {actual_width}x{actual_height}")
+
+    # Lấy FPS thực tế
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"FPS của webcam/video stream: {fps}")
+
+    return cap, fps  # webcam_stream
 # ----------------------------------------------------------------------------#
 
 def send_to_hardware_api(waste_label):
@@ -173,6 +181,11 @@ def generate_stream(stream_url):
             if frame is None:
                 print("Không nhận được khung hình.")
                 break
+
+            # # Đợi nếu cần để giữ đồng bộ FPS
+            # elapsed_time = time.time() - start_time
+            # if elapsed_time < 1.0 / fps:
+            #     time.sleep(1.0 / fps - elapsed_time)
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
