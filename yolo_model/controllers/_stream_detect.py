@@ -208,13 +208,14 @@ def generate_stream(stream_url):
                 line_counter.trigger(detections)
 
                 if line_counter.out_count > prev_out_count:
+                    print("\n line_counter.out_count: ", line_counter.out_count)
                     for class_name, tracker_id in zip(
                         detections["class_name"], detections.tracker_id
                     ):
-                        if tracker_id in _constants.COUNTED_IDS:
-                            continue  # Bỏ qua nếu tracker_id đã được xử lý
                         print("\n###Class_name: ", class_name)
                         print("\n###Tracker_id: ", tracker_id)
+                        if tracker_id in _constants.COUNTED_IDS:
+                            continue  # Bỏ qua nếu tracker_id đã được xử lý
                         # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
                         _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
                         if class_name in state.waste_count:
@@ -224,6 +225,7 @@ def generate_stream(stream_url):
                             waste_label = map_yolo_to_label.map_yolo_to_label(
                                 class_name
                             )
+                            print("\nwaste_label: ", waste_label)
                             if waste_label != -1:
                                 print(
                                     f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
