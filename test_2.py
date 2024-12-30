@@ -35,9 +35,9 @@ from yolo_model.controllers import _save_to_db
 #             .first()
 #         )
 # print(result)
-file = "output_20241230_114322"
+file = "output_20241230_133125"
 cloudfront_url = (
-    "https://d5nvd4drtg1ie.cloudfront.net/97fbbfb9-cad3-4ecb-b398-ee3184e135a0.mp4"
+    "https://d5nvd4drtg1ie.cloudfront.net/2d13fef9-3d5c-48ee-8d26-609991a06ed3.mp4"
 )
 start_time = "2024-12-30 11:43:08.389374"
 
