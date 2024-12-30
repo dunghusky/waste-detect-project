@@ -186,10 +186,10 @@ def generate_stream(stream_url):
                 print("Không nhận được khung hình.")
                 break
 
-            # Đợi nếu cần để giữ đồng bộ FPS
+            # Điều chỉnh FPS động
             elapsed_time = time.time() - start_time
-            if elapsed_time < 1.0 / fps:
-                time.sleep(1.0 / fps - elapsed_time)
+            fps_delay = max(1.0 / fps - elapsed_time, 0)
+            time.sleep(fps_delay)
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
