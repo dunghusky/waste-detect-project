@@ -192,20 +192,22 @@ def generate_stream(stream_url):
                     for class_name, tracker_id in zip(
                         detections["class_name"], detections.tracker_id
                     ):
+                        if tracker_id in _constants.COUNTED_IDS:
+                            continue  # Bỏ qua nếu tracker_id đã được xử lý
                         print("\n###Class_name: ", class_name)
                         print("\n###Tracker_id: ", tracker_id)
-                        if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
-                            _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
-                            if class_name in state.waste_count:
-                                print("\n###Class_name: ", class_name)
-                                state.waste_count[class_name] += 1
-                                print("\n###Updated waste_count: ", state.waste_count)
-                                waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
-                                if waste_label != -1:
-                                    print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
-                                    send_to_hardware_api(waste_label)
-                            else:
-                                print("\nKhông có class_id")
+                        # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
+                        _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+                        if class_name in state.waste_count:
+                            print("\n###Class_name: ", class_name)
+                            state.waste_count[class_name] += 1
+                            print("\n###Updated waste_count: ", state.waste_count)
+                            waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+                            if waste_label != -1:
+                                print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                                send_to_hardware_api(waste_label)
+                        else:
+                            print("\nKhông có class_id")
 
                     prev_out_count = line_counter.out_count
 
