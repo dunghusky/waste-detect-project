@@ -8,12 +8,12 @@ from database.models.ChiTietXuLyRac import ChiTietXuLyRac
 def save_video_process_db(file_name ,cloudfront_url, start_time, end_time, video_duration):
     """Lưu video vào cơ sở dữ liệu"""
     try:
-        # print("\n\nbbbbbbbbbbbbbbbbb")
-        # print("\nfile name: ", file_name)
-        # print("\ncloudfront_url: ", cloudfront_url)
-        # print("\nstart_time: ", start_time)
-        # print("\nend_time: ", end_time)
-        # print("\nvideo_duration: ", video_duration)
+        print("\n\nbbbbbbbbbbbbbbbbb")
+        print("\nfile name: ", file_name)
+        print("\ncloudfront_url: ", cloudfront_url)
+        print("\nstart_time: ", start_time)
+        print("\nend_time: ", end_time)
+        print("\nvideo_duration: ", video_duration)
         with next(get_db()) as db:
             new_record = VideoXuLy(
                 tenVideo=file_name,  # Lưu đường dẫn video
