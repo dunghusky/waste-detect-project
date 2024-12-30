@@ -3,6 +3,8 @@ from supervision import Point
 # --------------------File Path------------------------#
 VIDEO_PATH = "./file_path/video_stream"
 
+MODEL_PATH = "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+
 AWS_BUCKET_NAME = "myawbucket1gg"
 
 
@@ -18,8 +20,8 @@ CLOUDFRONT_BASE_URL = (
     "https://d5nvd4drtg1ie.cloudfront.net/"
 )
 
-LINE_START = Point(670, 0)
-LINE_END = Point(670, 750)
+# LINE_START = Point(670, 0)
+# LINE_END = Point(670, 750)
 
 LINE_START = Point(350, 0)
 LINE_END = Point(350, 650)

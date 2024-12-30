@@ -153,7 +153,7 @@ def generate_stream(stream_url):
 
     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
     model, box_annatator, lables_annatator, line_counter, line_annotator, byte_tracker = initialize_yolo_and_annotators(
-        "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt", _constants.LINE_START, _constants.LINE_END
+        _constants.MODEL_PATH, _constants.LINE_START, _constants.LINE_END
     )
 
     state.waste_count = deepcopy(_constants.WASTE_COUNT)
@@ -178,7 +178,7 @@ def generate_stream(stream_url):
             detections = detect_objects(frame, model)
 
             # Kiểm tra detections trước khi tiếp tục
-            if detections is not None and len(detections["class_name"]) > 0:
+            if detections is None or not detections["class_name"].any():
                 detections = byte_tracker.update_with_detections(detections=detections)
 
                 # Vẽ kết quả lên khung hình
