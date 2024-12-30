@@ -178,7 +178,9 @@ def generate_stream(stream_url):
             detections = detect_objects(frame, model)
 
             # Kiểm tra detections trước khi tiếp tục
-            if detections is None or not detections["class_name"].any():
+            if detections is not None and len(detections["class_name"]) > 0:
+                print("\nKiểu dữ liệu: ", detections["class_name"])
+                print("\nLen: ", len(detections["class_name"]))
                 detections = byte_tracker.update_with_detections(detections=detections)
 
                 # Vẽ kết quả lên khung hình
@@ -206,9 +208,9 @@ def generate_stream(stream_url):
                                 print("\nKhông có class_id")
 
                     prev_out_count = line_counter.out_count
-                    
+
                 else:
-                # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
+                    # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
                     print("Không có đối tượng nào được nhận diện.")
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
