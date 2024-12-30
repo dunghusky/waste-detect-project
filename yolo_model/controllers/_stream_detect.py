@@ -15,6 +15,7 @@ from yolo_model.manage.YOLOWorker import YOLOWorker
 from config import _create_file, _constants
 from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 
+
 def parse_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description="Yolov8 live camera")
     parse.add_argument("--webcam_resolutions", type=int, default=[640, 480], nargs=2)
@@ -49,7 +50,7 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     Returns:
     - frame: Khung hình đã được vẽ khung hộp và nhãn.
     """
-    
+
     # Kiểm tra detections trước khi xử lý
     if detections is None or not detections["class_name"]:
         print("Không có đối tượng để vẽ.")
@@ -68,13 +69,15 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     return frame
 
 
-def initialize_yolo_and_annotators(model_path: str, LINE_START: sv.Point, LINE_END: sv.Point):
+def initialize_yolo_and_annotators(
+    model_path: str, LINE_START: sv.Point, LINE_END: sv.Point
+):
     """
     Khởi tạo mô hình YOLO và các annotator.
     """
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:1" if torch.cuda.is_available() else "cpu"
     model = YOLO(model_path).to(device)
-    
+
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
     line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
@@ -86,7 +89,7 @@ def initialize_yolo_and_annotators(model_path: str, LINE_START: sv.Point, LINE_E
         label_annotator,
         line_counter,
         line_annotator,
-        byte_tracker
+        byte_tracker,
     )
 
 
@@ -94,7 +97,7 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     """
     Mở luồng video từ URL và thiết lập độ phân giải.
     """
-    webcam_stream = WebcamStream(stream_id = stream_url)
+    webcam_stream = WebcamStream(stream_id=stream_url)
     webcam_stream.start()
 
     actual_width = webcam_stream.vcap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -113,7 +116,10 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
 
     return webcam_stream, fps
+
+
 # ----------------------------------------------------------------------------#
+
 
 def send_to_hardware_api(waste_label):
     url = "http://52.88.216.148:8000/api/v1/stream/send-label"
@@ -126,6 +132,7 @@ def send_to_hardware_api(waste_label):
             print("Lỗi khi gửi nhãn:", response.status_code, response.text)
     except Exception as e:
         print("Lỗi kết nối tới API:", e)
+
 
 # ----------------------------------------------------------------------------#
 def generate_stream(stream_url):
@@ -142,9 +149,7 @@ def generate_stream(stream_url):
     state.output_file = _create_file.create_video()
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
-        cv2.VideoWriter(
-            state.output_file, fourcc, 26.0, (frame_width, frame_height)
-        )
+        cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
     )
 
     video_writer = state.get_video_writer()
@@ -152,7 +157,14 @@ def generate_stream(stream_url):
         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
 
     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
-    model, box_annatator, lables_annatator, line_counter, line_annotator, byte_tracker = initialize_yolo_and_annotators(
+    (
+        model,
+        box_annatator,
+        lables_annatator,
+        line_counter,
+        line_annotator,
+        byte_tracker,
+    ) = initialize_yolo_and_annotators(
         _constants.MODEL_PATH, _constants.LINE_START, _constants.LINE_END
     )
 
@@ -207,9 +219,13 @@ def generate_stream(stream_url):
                             print("\n###Class_name: ", class_name)
                             state.waste_count[class_name] += 1
                             print("\n###Updated waste_count: ", state.waste_count)
-                            waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+                            waste_label = map_yolo_to_label.map_yolo_to_label(
+                                class_name
+                            )
                             if waste_label != -1:
-                                print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                                print(
+                                    f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
+                                )
                                 send_to_hardware_api(waste_label)
                         else:
                             print("\nKhông có class_id")
