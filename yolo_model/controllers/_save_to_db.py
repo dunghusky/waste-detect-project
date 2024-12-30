@@ -1,6 +1,7 @@
 from database.dependencies.dependencies import get_db
 from database.models.Camera import Camera
 from database.models.DanhMucMoHinh import DanhMucMoHinh
+from database.models.DanhMucPhanLoaiRac import DanhMucPhanLoaiRac
 from database.models.RacThai import RacThai
 from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
