@@ -67,7 +67,7 @@ class WebcamStream:
             print("[Exiting]: Error accessing webcam stream.")
             exit(0)
         fps_input_stream = int(self.vcap.get(5))
-        print("FPS of webcam hardware/input stream: {}".format(fps_input_stream))
+        # print("FPS of webcam hardware/input stream: {}".format(fps_input_stream))
 
         # reading a single frame from vcap stream for initializing
         self.grabbed, self.frame = self.vcap.read()
