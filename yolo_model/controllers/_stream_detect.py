@@ -118,7 +118,7 @@ def initialize_video_stream(stream_url: str):
     # if not cap.isOpened():
     #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
 
-    return webcam_stream, actual_width, actual_height, fps
+    return webcam_stream, fps
 
 
 # ----------------------------------------------------------------------------#
