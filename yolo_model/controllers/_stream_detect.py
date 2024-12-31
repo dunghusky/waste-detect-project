@@ -52,7 +52,8 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     """
 
     # Kiểm tra detections trước khi xử lý
-    if detections is None or len(detections["class_name"]) == 0:
+    if detections is None or not any(detections["class_name"]):
+        print("\nDetection draw: ", detections["class_name"])
         print("Không có đối tượng để vẽ.")
         return frame  # Trả về khung hình gốc
 
