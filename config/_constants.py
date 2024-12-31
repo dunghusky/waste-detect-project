@@ -3,7 +3,7 @@ from supervision import Point
 # --------------------File Path------------------------#
 VIDEO_PATH = "./file_path/video_stream"
 
-MODEL_PATH = "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+MODEL_PATH = "./checkpoints_v11x/waste_detection_v11x/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
 
 AWS_BUCKET_NAME = "myawbucket1gg"
 
