@@ -143,17 +143,17 @@ def generate_stream(stream_url):
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
     """
     args = parse_args()
-    # frame_width, frame_height = args.webcam_resolutions
+    frame_width, frame_height = args.webcam_resolutions
 
     # Mở luồng video
-    cap, frame_width, frame_height, fps = initialize_video_stream(stream_url)
+    cap, fps = initialize_video_stream(stream_url)
 
     # Tạo tên file video với timestamp
     state.output_file = _create_file.create_video()
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
         cv2.VideoWriter(
-            state.output_file, fourcc, 26.0, (frame_width, frame_height)
+            state.output_file, fourcc, 26.0, (800, 600)
         )
     )
 
