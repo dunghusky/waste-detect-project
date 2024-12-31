@@ -151,7 +151,9 @@ def generate_stream(stream_url):
     state.output_file = _create_file.create_video()
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
-        cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
+        cv2.VideoWriter(
+            state.output_file, fourcc, float(fps), (frame_width, frame_height)
+        )
     )
 
     video_writer = state.get_video_writer()
@@ -175,6 +177,10 @@ def generate_stream(stream_url):
     prev_in_count = 0
     prev_out_count = 0
 
+    # Biến theo dõi FPS thực tế
+    frame_count = 0
+    start_time_total = time.time()
+
     try:
         while not state.terminate_flag:
             if state.terminate_flag:  # Kiểm tra cờ dừng
@@ -188,10 +194,31 @@ def generate_stream(stream_url):
                 print("Không nhận được khung hình.")
                 break
 
+            # Tăng số lượng khung hình đã xử lý
+            frame_count += 1
+
             # Đợi nếu cần để giữ đồng bộ FPS
             elapsed_time = time.time() - start_time
             if elapsed_time < 1.0 / fps:
                 time.sleep(1.0 / fps - elapsed_time)
+
+            # Tính toán FPS thực tế mỗi giây
+            if frame_count % fps == 0:
+                elapsed_total = time.time() - start_time_total
+                fps_real = frame_count / elapsed_total
+                print(f"FPS thực tế: {fps_real:.2f}")
+
+                # Cập nhật FPS cho VideoWriter nếu khác biệt
+                if video_writer and video_writer.isOpened():
+                    video_writer.release()
+                state.set_video_writer(
+                    cv2.VideoWriter(
+                        state.output_file,
+                        fourcc,
+                        float(fps_real),
+                        (frame_width, frame_height),
+                    )
+                )
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
