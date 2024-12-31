@@ -23,8 +23,11 @@ CLOUDFRONT_BASE_URL = (
 # LINE_START = Point(670, 0)
 # LINE_END = Point(670, 750)
 
-LINE_START = Point(350, 0)
-LINE_END = Point(350, 650)
+# LINE_START = Point(350, 0)
+# LINE_END = Point(350, 650)
+
+LINE_START = Point(150, 0)
+LINE_END = Point(150, 500)
 
 WASTE_COUNT = {
     "chai-lo-manh-vo-thuy-tinh": 0,
