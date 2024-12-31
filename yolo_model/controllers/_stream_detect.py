@@ -155,7 +155,7 @@ def generate_stream(stream_url):
         cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
     )
 
-    repeat_frames = 6
+    repeat_frames = 3
 
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
