@@ -96,7 +96,7 @@ def initialize_yolo_and_annotators(
     )
 
 
-def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int):
+def initialize_video_stream(stream_url: str):
     """
     Mở luồng video từ URL và thiết lập độ phân giải.
     """
@@ -118,7 +118,7 @@ def initialize_video_stream(stream_url: str, frame_width: int, frame_height: int
     # if not cap.isOpened():
     #     raise ValueError(f"Không thể mở luồng video từ URL: {stream_url}")
 
-    return webcam_stream, fps
+    return webcam_stream, actual_width, actual_height, fps
 
 
 # ----------------------------------------------------------------------------#
@@ -143,10 +143,10 @@ def generate_stream(stream_url):
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
     """
     args = parse_args()
-    frame_width, frame_height = args.webcam_resolutions
+    # frame_width, frame_height = args.webcam_resolutions
 
     # Mở luồng video
-    cap, fps = initialize_video_stream(stream_url, frame_width, frame_height)
+    cap, frame_width, frame_height, fps = initialize_video_stream(stream_url)
 
     # Tạo tên file video với timestamp
     state.output_file = _create_file.create_video()
@@ -157,7 +157,7 @@ def generate_stream(stream_url):
         )
     )
 
-    repeat_frames = 3
+    repeat_frames = 6
 
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
@@ -182,7 +182,6 @@ def generate_stream(stream_url):
 
     # Biến theo dõi FPS thực tế
     frame_count = 0
-    start_time_total = time.time()
 
     try:
         while not state.terminate_flag:
@@ -210,8 +209,8 @@ def generate_stream(stream_url):
 
             # Kiểm tra detections trước khi tiếp tục
             if detections is not None and len(detections["class_name"]) > 0:
-                print("\nKiểu dữ liệu: ", detections["class_name"])
-                print("\nLen: ", len(detections["class_name"]))
+                # print("\nKiểu dữ liệu: ", detections["class_name"])
+                # print("\nLen: ", len(detections["class_name"]))
                 detections = byte_tracker.update_with_detections(detections=detections)
 
                 # Vẽ kết quả lên khung hình
