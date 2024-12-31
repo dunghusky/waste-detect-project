@@ -84,7 +84,7 @@ def initialize_yolo_and_annotators(
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
     line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
-    line_annotator = sv.LineZoneAnnotator(thickness=4, text_thickness=4, text_scale=2)
+    line_annotator = sv.LineZoneAnnotator(thickness=2, text_thickness=4, text_scale=2)
     byte_tracker = sv.ByteTrack()
     return (
         model,
