@@ -52,7 +52,7 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     """
 
     # Kiểm tra detections trước khi xử lý
-    if detections is None or detections["class_name"] is None:  #or not any(detections["class_name"])
+    if detections is None or detections["class_name"] is None: #or not any(detections["class_name"])
         print("\nDetection draw: ", detections["class_name"])
         print("Không có đối tượng để vẽ.")
         return frame  # Trả về khung hình gốc
@@ -152,9 +152,7 @@ def generate_stream(stream_url):
     state.output_file = _create_file.create_video()
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
-        cv2.VideoWriter(
-            state.output_file, fourcc, 26.0, (800, 600)
-        )
+        cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
     )
 
     repeat_frames = 6
