@@ -152,9 +152,11 @@ def generate_stream(stream_url):
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     state.set_video_writer(
         cv2.VideoWriter(
-            state.output_file, fourcc, float(fps), (frame_width, frame_height)
+            state.output_file, fourcc, 26.0, (frame_width, frame_height)
         )
     )
+
+    repeat_frames = 3
 
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
@@ -201,24 +203,6 @@ def generate_stream(stream_url):
             elapsed_time = time.time() - start_time
             if elapsed_time < 1.0 / fps:
                 time.sleep(1.0 / fps - elapsed_time)
-
-            # Tính toán FPS thực tế mỗi giây
-            if frame_count % fps == 0:
-                elapsed_total = time.time() - start_time_total
-                fps_real = frame_count / elapsed_total
-                print(f"FPS thực tế: {fps_real:.2f}")
-
-                # Cập nhật FPS cho VideoWriter nếu khác biệt
-                if video_writer and video_writer.isOpened():
-                    video_writer.release()
-                state.set_video_writer(
-                    cv2.VideoWriter(
-                        state.output_file,
-                        fourcc,
-                        float(fps_real),
-                        (frame_width, frame_height),
-                    )
-                )
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
@@ -275,8 +259,10 @@ def generate_stream(stream_url):
             print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
-            if video_writer is not None:
-                video_writer.write(frame)
+            # Trong vòng lặp chính
+            for _ in range(repeat_frames):
+                if video_writer is not None:
+                    video_writer.write(frame)
 
             # Mã hóa khung hình sang JPEG
             _, buffer = cv2.imencode(".jpg", frame)
