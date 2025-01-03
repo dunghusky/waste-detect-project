@@ -32,7 +32,7 @@ def video_feed():
     try:
         state.start_time = datetime.now()
 
-        stream_url = "https://meyer-staffing-better-shoe.trycloudflare.com/1"  # "rtmp://52.88.216.148:12566/live"  # "rtmp://45.90.223.138:12586/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
+        stream_url = "https://bush-saturday-skating-threatened.trycloudflare.com/1"  # "rtmp://52.88.216.148:12566/live"  # "rtmp://45.90.223.138:12586/live"  # Thay bằng stream URL thực tế: https://9500-116-105-216-200.ngrok-free.app/1
         return StreamingResponse(
             _stream_detect.generate_stream(stream_url),
             media_type="multipart/x-mixed-replace; boundary=frame",
