@@ -329,5 +329,5 @@ def run_detection(stream_url):
 
 # # Chạy chương trình
 if __name__ == "__main__":
-    run_detection("rtmp://45.90.223.138:12586/live")
-    # run_detection("./output_frames/6779842421098717812.mp4")
+    # run_detection("rtmp://45.90.223.138:12586/live")
+    run_detection("./output_frames/6779842421098717812.mp4")
