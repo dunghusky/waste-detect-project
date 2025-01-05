@@ -11,7 +11,6 @@ import supervision as sv
 from yolo_model.train import map_yolo_to_label
 from yolo_model.manage.StateManager import state
 from yolo_model.manage.WebcamStream import WebcamStream
-from yolo_model.manage.YOLOWorker import YOLOWorker
 from config import _create_file, _constants
 from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 
@@ -33,7 +32,8 @@ def detect_objects(frame, model):
     Returns:
     - detections: Kết quả nhận diện.
     """
-    results = model(frame)[0]
+    # results = model(frame)[0]
+    results = model.predict(frame, conf=0.1, iou=0.5)[0]
     detections = sv.Detections.from_ultralytics(results)
     return detections
 
@@ -84,7 +84,7 @@ def initialize_yolo_and_annotators(
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
     line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
-    line_annotator = sv.LineZoneAnnotator(thickness=2, text_thickness=4, text_scale=2)
+    line_annotator = sv.LineZoneAnnotator(thickness=2, text_thickness=2, text_scale=2)
     byte_tracker = sv.ByteTrack()
     return (
         model,

@@ -55,7 +55,7 @@ from threading import Thread
 
 
 class WebcamStream:
-    def __init__(self, stream_id=0, target_fps=30):
+    def __init__(self, stream_id=0, target_fps=25):
         self.stream_id = stream_id
         self.target_fps = target_fps
         self.frame_interval = 1.0 / target_fps  # Khoảng thời gian giữa 2 khung hình
