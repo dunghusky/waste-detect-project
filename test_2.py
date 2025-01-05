@@ -24,7 +24,7 @@
 # from database.models.DanhMucMoHinh import DanhMucMoHinh
 # from database.models.VideoXuLy import VideoXuLy
 # from database.models.ChiTietXuLyRac import ChiTietXuLyRac
-from yolo_model.controllers import _save_to_db
+# from yolo_model.controllers import _save_to_db
 
 # id = _trigger_to_db.get_id_waste_from_class_name("chai-nhua")
 # print(id)
@@ -35,27 +35,27 @@ from yolo_model.controllers import _save_to_db
 #             .first()
 #         )
 # print(result)
-file_name = "output_20241230_214454"
-cloudfront_url = (
-    "https://d5nvd4drtg1ie.cloudfront.net/93b3d5ef-b178-4038-93dd-19a7f36d5446.mp4"
-)
-start_time = "2024-12-30 21:44:41"
+# file_name = "output_20241230_214454"
+# cloudfront_url = (
+#     "https://d5nvd4drtg1ie.cloudfront.net/93b3d5ef-b178-4038-93dd-19a7f36d5446.mp4"
+# )
+# start_time = "2024-12-30 21:44:41"
 
-end_time = "2024-12-30 21:47:41"
+# end_time = "2024-12-30 21:47:41"
 
-video_duration = "180.872417"
+# video_duration = "180.872417"
 # id = _save_to_db.save_video_process_db(file, cloudfront_url, start_time, end_time, video_duration)
 # # _save_to_db.save_details_wastes_process_db('1', '1', 10, )
 # print(id)
 
-idVideo = _save_to_db.save_video_process_db(
-    file_name,
-    cloudfront_url,
-    start_time,
-    end_time,
-    video_duration,
-)
-print("\nLưu video thành công, id_video: ", idVideo)
+# idVideo = _save_to_db.save_video_process_db(
+#     file_name,
+#     cloudfront_url,
+#     start_time,
+#     end_time,
+#     video_duration,
+# )
+# print("\nLưu video thành công, id_video: ", idVideo)
 
 # from yolo_model.controllers import _upload_s3
 
@@ -74,3 +74,12 @@ print("\nLưu video thành công, id_video: ", idVideo)
 # response = requests.get(url, headers=headers)
 # print(response.text)
 # print("aaaaaaaaaa")
+
+from yolo_model.controllers._img_detect import detect_image
+from config import _create_file, _constants
+
+img = "./file_path/img/image.png"
+output = _constants.IMG_PATH
+
+file = detect_image(img, output)
+print("Link: ", file)
