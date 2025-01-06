@@ -5,7 +5,7 @@ VIDEO_PATH = "./file_path/video_stream"
 
 IMG_PATH = "./file_path/img"
 
-MODEL_PATH = "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+MODEL_PATH = "./train/weights/best.pt" #"./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
 
 AWS_BUCKET_NAME = "myawbucket1gg"
 
