@@ -170,7 +170,7 @@ def generate_stream(stream_url):
         line_annotator,
         byte_tracker,
     ) = initialize_yolo_and_annotators(
-        _constants.MODEL_PATH, _constants.LINE_START, _constants.LINE_END
+        _constants.MODEL_PATH_3, _constants.LINE_START, _constants.LINE_END
     )
 
     state.waste_count = deepcopy(_constants.WASTE_COUNT)

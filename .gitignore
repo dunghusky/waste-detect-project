@@ -28,3 +28,5 @@ train_data/connect_webcam/*.pt
 file_path
 
 train
+train_p2
+train_p3
