@@ -1,7 +1,7 @@
 import os
 from typing import Union
 import uuid
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 
@@ -17,6 +17,9 @@ router = APIRouter(
 @router.post("/image_detect")
 def send_img(
     img: Union[UploadFile, None] = None,
+    conf: float = Form(...),
+    iou: float = Form(...),
+    path_model: str = Form(...),
 ):
     try:
         if img:
@@ -30,7 +33,7 @@ def send_img(
             with open(temp_file_path, "wb") as f:
                 f.write(img.file.read())  # Đọc file từ UploadFile
 
-            img_url_s3 = _img_detect.detect_image(temp_file_path, _constants.IMG_PATH)
+            img_url_s3 = _img_detect.detect_image(temp_file_path, _constants.IMG_PATH, conf, iou, path_model)
 
             # Xóa file tạm sau khi upload
             os.remove(temp_file_path)

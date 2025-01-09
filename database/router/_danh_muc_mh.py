@@ -1,5 +1,8 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Form
+from datetime import datetime
+import os
+from typing import Optional, Union
+import uuid
+from fastapi import APIRouter, Depends, Form, UploadFile
 from fastapi.responses import JSONResponse
 from loguru import logger
 from database.dependencies.dependencies import get_db
@@ -13,6 +16,7 @@ from database.models.DanhMucMoHinh import DanhMucMoHinh
 from database.models.RacThai import RacThai
 from database.models.VideoXuLy import VideoXuLy
 from database.models.ChiTietXuLyRac import ChiTietXuLyRac
+from yolo_model.controllers import _upload_s3
 
 router = APIRouter(
     prefix="/api/v1/model-category",
@@ -25,14 +29,73 @@ def add_model_category(
     modelName: str = Form(...),
     note: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
+    img: Union[UploadFile, None] = None,
+    date: Optional[str] = Form(None),
+    results: Union[UploadFile, None] = None,
     db: Session = Depends(get_db),
 ):
     try:
+        print(f"modelName: {modelName}")
+        print(f"note: {note}")
+        print(f"link: {link}")
+        print(f"date: {date}")
+
+        if img:
+            print(f"IMG Info: filename={img.filename}, content_type={img.content_type}")
+
+        if results:
+            print(f"RESULTS Info: filename={results.filename}, content_type={results.content_type}")
+
+        dmy_date = datetime.strptime(date, "%d-%m-%Y").date() if date else datetime.utcnow().date()
+
+        img_url = None
+        if img:
+            # Tạo thư mục tạm nếu chưa tồn tại
+            temp_dir = "./file_path/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # Lưu file tạm
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())  # Đọc file từ UploadFile
+
+            # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
+            link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+            
+            img_url = _upload_s3.convert_cloudfront_link(link_img)
+
+            # Xóa file tạm sau khi upload
+            os.remove(temp_file_path)
+            
+        results_url = None
+        if results:
+            # Tạo thư mục tạm nếu chưa tồn tại
+            temp_dir = "./file_path/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # Lưu file tạm
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{results.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(results.file.read())  # Đọc file từ UploadFile
+
+            # Gọi hàm upload_file_to_s3 với đường dẫn file tạm
+            link_results = _upload_s3.upload_file_to_s3(temp_file_path)
+            
+            results_url = _upload_s3.convert_cloudfront_link(link_results)
+            
+            # Xóa file tạm sau khi upload
+            os.remove(temp_file_path)
+            
         # Thêm dữ liệu vào bảng RacThai
         new_model = DanhMucMoHinh(
             tenMoHinh=modelName,
             duongDan=link,
             ghiChu=note,
+            ketQuaTrain=results_url,
+            hinhAnh=img_url,
+            ngayThem=dmy_date
         )
 
         # Lưu vào database
@@ -50,6 +113,9 @@ def add_model_category(
                     "tenMoHinh": new_model.tenMoHinh,
                     "duongDan": new_model.duongDan,
                     "ghiChu": new_model.ghiChu,
+                    "ketQua": new_model.ketQuaTrain,
+                    "img": new_model.hinhAnh,
+                    "ngayThem": new_model.ngayThem.strftime("%d-%m-%Y")
                 },
             },
             status_code=200,
@@ -80,6 +146,13 @@ def get_model_category_data(db: Session = Depends(get_db)):
                 "tenMoHinh": row.tenMoHinh,
                 "duongDan": row.duongDan,
                 "ghiChu": row.ghiChu,
+                "ketQua": row.ketQuaTrain,
+                "img": row.hinhAnh,
+                "ngayThem": (
+                    row.ngayThem.strftime("%d-%m-%Y")
+                    if row.ngayThem
+                    else None
+                )
             }
             for row in result
         ]
@@ -137,6 +210,9 @@ def update_model_category_data(
     modelName: str = Form(None),
     note: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
+    img: Union[UploadFile, None] = None,
+    date: Optional[str] = Form(None),
+    results: Union[UploadFile, None] = None,
     db: Session = Depends(get_db),
 ):
     try:
@@ -147,7 +223,61 @@ def update_model_category_data(
                 content={"status": 404, "message": "Rác thải không tồn tại."},
                 status_code=404,
             )
+        
+        # Cập nhật hình ảnh nếu có
+        if img:
+            temp_dir = "./file_path/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
 
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{img.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(img.file.read())
+
+            try:
+                link_img = _upload_s3.upload_file_to_s3(temp_file_path)
+                img_url = _upload_s3.convert_cloudfront_link(link_img)
+                model.hinhAnh = img_url
+            finally:
+                os.remove(temp_file_path)
+        
+        # Cập nhật hình ảnh nếu có
+        if results:
+            temp_dir = "./file_path/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{results.filename}"
+            file_content = results.file.read()
+
+            if not file_content:
+                return JSONResponse(
+                    content={"status": 400, "message": "File kết quả tải lên bị trống."},
+                    status_code=400,
+                )
+
+            with open(temp_file_path, "wb") as f:
+                f.write(file_content)
+                
+            try:
+                link_results = _upload_s3.upload_file_to_s3(temp_file_path)
+                results_url = _upload_s3.convert_cloudfront_link(link_results)
+                model.ketQuaTrain = results_url
+            finally:
+                os.remove(temp_file_path)
+        else:
+            # Bỏ qua cập nhật trường results nếu không có file
+            print("Không cập nhật trường results vì không có file được gửi.")
+
+        if date:
+            try:
+                dmy_date = datetime.strptime(date, "%d-%m-%Y").date()
+                model.ngayThem = dmy_date
+            except ValueError:
+                return JSONResponse(
+                    content={"status": 400, "message": "Định dạng ngày không hợp lệ. Vui lòng sử dụng định dạng DD-MM-YYYY."},
+                    status_code=400,
+                )
         # Cập nhật các trường khác nếu có
         if modelName:
             model.tenMoHinh = modelName
@@ -168,6 +298,13 @@ def update_model_category_data(
                     "tenMoHinh": model.tenMoHinh,
                     "duongDan": model.duongDan,
                     "ghiChu": model.ghiChu,
+                    "ketQua": model.ketQuaTrain,
+                    "img": model.hinhAnh,
+                    "ngayThem": (
+                        model.ngayThem.strftime("%d-%m-%Y")
+                        if model.ngayThem
+                        else None
+                    )
                 },
             },
             status_code=200,

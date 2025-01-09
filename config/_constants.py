@@ -5,7 +5,7 @@ VIDEO_PATH = "./file_path/video_stream"
 
 IMG_PATH = "./file_path/img"
 
-MODEL_PATH = "./train/weights/best.pt" #"./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
+MODEL_PATH = "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt" #"./train/weights/best.pt" #"./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"  # "./yolo_model/checkpoints/waste_detection_v2/weights/best.pt"
 
 MODEL_PATH_2 = "./train_p2/train/weights/best.pt"
 MODEL_PATH_3 = "./train_p3/train/weights/best.pt"
@@ -19,6 +19,8 @@ SUPPORT_FILE_TYPES = {
     "video/mkv": "mkv",
     "image/png": "png",
     "image/jpeg": ["jpg", "jpeg"],
+    "text/csv": "csv",
+    "text/plain": "csv"
 }
 
 CLOUDFRONT_BASE_URL = (
