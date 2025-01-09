@@ -24,6 +24,7 @@ router = APIRouter(
 
 
 @router.post("/add_waste")
+@router.post("/add_waste/")
 def add_waste(
     wasteName: str = Form(...),
     note: Optional[str] = Form(None),
@@ -102,6 +103,7 @@ def add_waste(
 
 
 @router.get("/waste_data")
+@router.get("/waste_data/")
 def get_waste_data(db: Session = Depends(get_db)):
     try:
 
@@ -146,6 +148,7 @@ def get_waste_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_waste")
+@router.post("/delete_waste/")
 def delete_waste(request: WasteDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -181,6 +184,7 @@ def delete_waste(request: WasteDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_waste_data")
+@router.post("/update_waste_data/")
 def update_waste_data(
     id_waste: int = Form(...),
     wasteName: str = Form(None),

@@ -25,6 +25,7 @@ router = APIRouter(
 
 
 @router.post("/add_model_category")
+@router.post("/add_model_category/")
 def add_model_category(
     modelName: str = Form(...),
     note: Optional[str] = Form(None),
@@ -129,6 +130,7 @@ def add_model_category(
 
 
 @router.get("/model_category_data")  # chưa test
+@router.get("/model_category_data/")  # chưa test
 def get_model_category_data(db: Session = Depends(get_db)):
     try:
         query = text(
@@ -170,6 +172,7 @@ def get_model_category_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_model_category")
+@router.post("/delete_model_category/")
 def delete_model_category(request: CategoryModelDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -205,6 +208,7 @@ def delete_model_category(request: CategoryModelDelete, db: Session = Depends(ge
 
 
 @router.post("/update_model_category_data")
+@router.post("/update_model_category_data/")
 def update_model_category_data(
     id_model: int = Form(...),
     modelName: str = Form(None),

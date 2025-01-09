@@ -21,6 +21,7 @@ router = APIRouter(
 
 
 @router.get("/video_process_data")
+@router.get("/video_process_data/")
 def get_video_process_data(db: Session = Depends(get_db)):
     try:
         # Truy vấn tính tổng từ bảng VideoXuLy
@@ -75,6 +76,7 @@ def get_video_process_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_video")
+@router.post("/delete_video/")
 def delete_video(request: VideoDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -110,6 +112,7 @@ def delete_video(request: VideoDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_process_video_data")
+@router.post("/update_process_video_data/")
 def update_process_video_data(
     id_video: int = Form(...),
     note: Optional[str] = Form(None),

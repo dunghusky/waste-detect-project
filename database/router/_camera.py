@@ -21,6 +21,7 @@ router = APIRouter(
 
 
 @router.post("/add_camera")
+@router.post("/add_camera/")
 def add_camera(
     cameraName: str = Form(...),
     note: Optional[str] = Form(None),
@@ -70,6 +71,7 @@ def add_camera(
 
 
 @router.get("/camera_data")  # chưa test
+@router.get("/camera_data/")  # chưa test
 def get_camera_data(db: Session = Depends(get_db)):
     try:
         # Truy vấn tính tổng từ bảng ChiTietXuLyRac
@@ -106,6 +108,7 @@ def get_camera_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_camera")
+@router.post("/delete_camera/")
 def delete_camera(request: CameraDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -141,6 +144,7 @@ def delete_camera(request: CameraDelete, db: Session = Depends(get_db)):
 
 
 @router.post("/update_camera_data")
+@router.post("/update_camera_data/")
 def update_camera_data(
     id_camera: int = Form(...),
     cameraName: str = Form(None),
