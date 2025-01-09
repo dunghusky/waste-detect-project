@@ -11,8 +11,8 @@ router = APIRouter(
     prefix="/api/v1/user",
     tags=["user"],
 )
-
 @router.post("/login")
+@router.post("/login/")
 async def login(user: Login, db: Session = Depends(get_db)):
     try:
         # Kiểm tra nếu email tồn tại trong cơ sở dữ liệu
