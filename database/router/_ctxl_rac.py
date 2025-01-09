@@ -21,6 +21,7 @@ router = APIRouter(
 
 
 @router.get("/video_detail_process_data")  # chưa test
+@router.get("/video_detail_process_data/")  # chưa test
 def get_video_detail_process_data(db: Session = Depends(get_db)):
     try:
         # Truy vấn tính tổng từ bảng ChiTietXuLyRac
@@ -61,6 +62,7 @@ def get_video_detail_process_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_details_waste")
+@router.post("/delete_details_waste/")
 def delete_details_waste(request: ProcessWasteDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -101,6 +103,7 @@ def delete_details_waste(request: ProcessWasteDelete, db: Session = Depends(get_
 
 
 @router.post("/update_details_wastes_data")
+@router.post("/update_details_wastes_data/")
 def update_details_wastes_data(
     id_video: int = Form(...),
     id_waste: int = Form(...),
