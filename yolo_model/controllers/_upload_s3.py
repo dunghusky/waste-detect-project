@@ -45,6 +45,7 @@ def upload_file_to_s3(output_file: str):
         file_contents = video_file.read()
 
         file_type = magic.from_buffer(buffer=file_contents, mime=True)
+        print(f"Detected MIME type: {file_type}")
 
         file_extension = _constants.SUPPORT_FILE_TYPES[file_type]
 
