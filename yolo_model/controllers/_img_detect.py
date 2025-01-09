@@ -8,7 +8,7 @@ from yolo_model.controllers._stream_detect import detect_objects, initialize_yol
 from config import _constants
 from yolo_model.controllers import _upload_s3
 
-def detect_image(img_path, output_path, conf, iou, model_path):
+def detect_image(img_path, model_path, output_path, conf=0.1, iou=0.5):
     frame = cv2.imread(img_path)
     if frame is None:
         raise ValueError(f"Không thể đọc ảnh từ đường dẫn: {img_path}")
@@ -22,8 +22,9 @@ def detect_image(img_path, output_path, conf, iou, model_path):
     ) = initialize_yolo_and_annotators(
         model_path, _constants.LINE_START, _constants.LINE_END
     )
+    # print("Model: ", model)
     detections = detect_objects(frame, model, conf, iou)
-
+    
     labels = [
         f"#{class_name} {confidence:.2f}"
         for class_name, confidence in zip(
