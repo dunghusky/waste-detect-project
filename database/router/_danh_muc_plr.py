@@ -24,6 +24,7 @@ router = APIRouter(
 
 
 @router.post("/add_waste_category")
+@router.post("/add_waste_category/")
 def add_waste_category(
     categoryName: str = Form(...),
     note: Optional[str] = Form(None),
@@ -86,6 +87,7 @@ def add_waste_category(
 
 
 @router.get("/waste_category_data") 
+@router.get("/waste_category_data/") 
 def get_waste_category_data(db: Session = Depends(get_db)):
     try:
 
@@ -128,6 +130,7 @@ def get_waste_category_data(db: Session = Depends(get_db)):
 
 
 @router.post("/delete_waste_category")
+@router.post("/delete_waste_category/")
 def delete_waste_category(request: CategoryWasteDelete, db: Session = Depends(get_db)):
     try:
         # Kiểm tra xem mã mô hình có tồn tại không
@@ -163,6 +166,7 @@ def delete_waste_category(request: CategoryWasteDelete, db: Session = Depends(ge
 
 
 @router.post("/update_waste_category_data")  # chưa test
+@router.post("/update_waste_category_data/") 
 def update_waste_category_data(
     id_category: int = Form(...),
     categoryName: str = Form(None),
