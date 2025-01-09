@@ -9,7 +9,7 @@ SQLALCHEMY_DATABASE_URL = settings.database_url
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={
-        "connect_timeout": 3000,  # Thời gian timeout khi kết nối (giây)
+        "connect_timeout": 30000,  # Thời gian timeout khi kết nối (giây)
         "autocommit": True,  # Tùy chọn thêm nếu cần
     },
     pool_pre_ping=True,  # Tự động kiểm tra kết nối trước khi sử dụng
