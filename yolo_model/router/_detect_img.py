@@ -33,7 +33,7 @@ def send_img(
             with open(temp_file_path, "wb") as f:
                 f.write(img.file.read())  # Đọc file từ UploadFile
 
-            img_url_s3 = _img_detect.detect_image(temp_file_path, _constants.IMG_PATH, conf, iou, path_model)
+            img_url_s3 = _img_detect.detect_image(temp_file_path, path_model, _constants.IMG_PATH, conf, iou)
 
             # Xóa file tạm sau khi upload
             os.remove(temp_file_path)

@@ -78,8 +78,17 @@
 from yolo_model.controllers._img_detect import detect_image
 from config import _create_file, _constants
 
-img = "./file_path/img/image.png"
+img = "./file_path/img/Screenshot 2025-01-04 231456.png"
 output = _constants.IMG_PATH
 
-file = detect_image(img, output)
+file = detect_image(img, _constants.MODEL_PATH_3, output,)
 print("Link: ", file)
+
+# from ultralytics import YOLO
+
+# model_path = "./train_p3/train/weights/best.pt"
+# try:
+#     model = YOLO(model_path)
+#     print("Mô hình đã được tải thành công!")
+# except Exception as e:
+#     print(f"Lỗi khi tải mô hình: {e}")
