@@ -33,7 +33,7 @@ def detect_objects(frame, model, conf=0.1, iou=0.5):
     - detections: Kết quả nhận diện.
     """
     # results = model(frame)[0]
-    results = model.predict(frame, conf, iou)[0]
+    results = model.predict(frame, conf=conf, iou=iou)[0]
     detections = sv.Detections.from_ultralytics(results)
     return detections
 
