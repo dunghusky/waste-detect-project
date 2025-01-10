@@ -182,6 +182,9 @@ def generate_stream(stream_url):
     frame_count = 0
 
     try:
+        frame_processed = 0
+        max_frames_to_process = 10
+        
         while not state.terminate_flag:
             if state.terminate_flag:  # Kiểm tra cờ dừng
                 break
@@ -190,10 +193,15 @@ def generate_stream(stream_url):
 
             frame = cap.read()
 
-            if frame is None:
-                print("Không nhận được khung hình.")
-                # break
-                continue
+            # if frame is None:
+            #     print("Không nhận được khung hình.")
+            #     # break
+            #     continue
+            
+            if frame is None or state.terminate_flag:
+                frame_processed += 1
+                if frame_processed >= max_frames_to_process:
+                    break
 
             # Tăng số lượng khung hình đã xử lý
             frame_count += 1
@@ -254,7 +262,7 @@ def generate_stream(stream_url):
 
             end_time = time.time()
 
-            latency = end_time - start_time
+            # latency = end_time - start_time
             # print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
