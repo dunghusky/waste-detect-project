@@ -192,8 +192,8 @@ def generate_stream(stream_url):
 
             if frame is None:
                 print("Không nhận được khung hình.")
-                # break
-                continue
+                break
+                # continue
 
             # Tăng số lượng khung hình đã xử lý
             frame_count += 1
