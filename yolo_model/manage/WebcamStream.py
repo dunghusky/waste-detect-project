@@ -93,20 +93,19 @@ class WebcamStream:
     def update(self):
         while not self.stopped:
             grabbed, frame = self.vcap.read()
-            if not grabbed:
-                print("[Exiting] No more frames to read")
-                self.stopped = True
+            if not grabbed or self.stopped:  # Thoát nếu không có frame hoặc nhận tín hiệu dừng
+                print("[Exiting] No more frames to read or stopped signal received")
                 break
-            # Chỉ cập nhật frame mới nếu cần
             with self.lock:
                 self.frame = frame
                 self.new_frame = True  # Đánh dấu frame mới đã được đọc
+        self.vcap.release()
 
     def read(self):
         with self.lock:
             if self.new_frame:
                 self.new_frame = False  # Đánh dấu frame đã được sử dụng
-                return self.frame.copy()
+                return self.frame
             return None  # Nếu không có frame mới, trả về None
 
 
