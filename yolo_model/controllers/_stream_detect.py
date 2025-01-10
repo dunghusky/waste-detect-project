@@ -192,7 +192,8 @@ def generate_stream(stream_url):
 
             if frame is None:
                 print("Không nhận được khung hình.")
-                break
+                # break
+                continue
 
             # Tăng số lượng khung hình đã xử lý
             frame_count += 1
@@ -254,7 +255,7 @@ def generate_stream(stream_url):
             end_time = time.time()
 
             latency = end_time - start_time
-            print(f"Độ trễ xử lý: {latency:.3f} giây")
+            # print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
             # Trong vòng lặp chính
@@ -271,6 +272,9 @@ def generate_stream(stream_url):
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
+            elapsed_time = time.time() - start_time
+            wait_time = max(1, int(1000 / fps - elapsed_time * 1000))
+            
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
             ):  # Exit when ESC key is pressed or terminate flag is set
