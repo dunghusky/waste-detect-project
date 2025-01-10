@@ -182,29 +182,18 @@ def generate_stream(stream_url):
     frame_count = 0
 
     try:
-        frame_processed = 0
-        max_frames_to_process = 10
-        
         while not state.terminate_flag:
             if state.terminate_flag:  # Kiểm tra cờ dừng
                 break
 
             start_time = time.time()
-
+            
             frame = cap.read()
 
-            # if frame is None:
-            #     print("Không nhận được khung hình.")
-            #     # break
-            #     continue
-            
-            if frame is None or state.terminate_flag:
-                frame_processed += 1
-                if frame_processed >= max_frames_to_process:
-                    break
-
-            # Tăng số lượng khung hình đã xử lý
-            frame_count += 1
+            if frame is None:
+                print("Không nhận được khung hình.")
+                # break
+                continue
 
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
@@ -260,7 +249,7 @@ def generate_stream(stream_url):
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
 
-            end_time = time.time()
+            # end_time = time.time()
 
             # latency = end_time - start_time
             # print(f"Độ trễ xử lý: {latency:.3f} giây")
