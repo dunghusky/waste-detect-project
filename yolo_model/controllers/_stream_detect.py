@@ -191,7 +191,7 @@ def generate_stream(stream_url):
             frame = cap.read()
 
             if frame is None:
-                print("Không nhận được khung hình.")
+                # print("Không nhận được khung hình.")
                 # break
                 continue
 
