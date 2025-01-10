@@ -197,10 +197,10 @@ def generate_stream(stream_url):
             # Tăng số lượng khung hình đã xử lý
             frame_count += 1
 
-            # Đợi nếu cần để giữ đồng bộ FPS
-            elapsed_time = time.time() - start_time
-            if elapsed_time < 1.0 / fps:
-                time.sleep(1.0 / fps - elapsed_time)
+            # # Đợi nếu cần để giữ đồng bộ FPS
+            # elapsed_time = time.time() - start_time
+            # if elapsed_time < 1.0 / fps:
+            #     time.sleep(1.0 / fps - elapsed_time)
 
             # Xử lý nhận diện với YOLO
             detections = detect_objects(frame, model)
