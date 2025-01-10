@@ -250,10 +250,10 @@ def generate_stream(stream_url):
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
 
-            # end_time = time.time()
+            end_time = time.time()
 
-            # latency = end_time - start_time
-            # print(f"Độ trễ xử lý: {latency:.3f} giây")
+            latency = end_time - start_time
+            print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
             # Trong vòng lặp chính
@@ -270,11 +270,11 @@ def generate_stream(stream_url):
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
-            
-            # elapsed_time = time.time() - start_time
-            # wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
-            # time.sleep(wait_time)
-            
+
+            elapsed_time = time.time() - start_time
+            wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
+            time.sleep(wait_time)
+
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
             ):  # Exit when ESC key is pressed or terminate flag is set
