@@ -36,18 +36,27 @@ def add_model_category(
     db: Session = Depends(get_db),
 ):
     try:
-        print(f"modelName: {modelName}")
-        print(f"note: {note}")
-        print(f"link: {link}")
-        print(f"date: {date}")
-
-        if img:
-            print(f"IMG Info: filename={img.filename}, content_type={img.content_type}")
-
-        if results:
-            print(f"RESULTS Info: filename={results.filename}, content_type={results.content_type}")
-
-        dmy_date = datetime.strptime(date, "%d-%m-%Y").date() if date else datetime.utcnow().date()
+        # Xử lý ngày tháng
+        dmy_date = None
+        if date:
+            try:
+                # Thử với định dạng DD-MM-YYYY
+                dmy_date = datetime.strptime(date, "%d-%m-%Y").date()
+            except ValueError:
+                try:
+                    # Thử với định dạng YYYY-MM-DD và chuyển sang DD-MM-YYYY
+                    ymd_date = datetime.strptime(date, "%Y-%m-%d").date()
+                    date = ymd_date.strftime("%d-%m-%Y")
+                    dmy_date = datetime.strptime(date, "%d-%m-%Y").date()
+                except ValueError:
+                    # Thông báo lỗi nếu ngày không hợp lệ
+                    return JSONResponse(
+                        content={"status": 400, "message": "Định dạng ngày không hợp lệ. Vui lòng sử dụng DD-MM-YYYY hoặc YYYY-MM-DD."},
+                        status_code=400,
+                    )
+        else:
+            # Nếu không có ngày, sử dụng ngày hiện tại
+            dmy_date = datetime.utcnow().date()
 
         img_url = None
         if img:
@@ -273,15 +282,23 @@ def update_model_category_data(
             # Bỏ qua cập nhật trường results nếu không có file
             print("Không cập nhật trường results vì không có file được gửi.")
 
+        # Xử lý ngày tháng (date)
         if date:
             try:
+                # Nếu ngày là d-m-y, giữ nguyên
                 dmy_date = datetime.strptime(date, "%d-%m-%Y").date()
-                model.ngayThem = dmy_date
             except ValueError:
-                return JSONResponse(
-                    content={"status": 400, "message": "Định dạng ngày không hợp lệ. Vui lòng sử dụng định dạng DD-MM-YYYY."},
-                    status_code=400,
-                )
+                try:
+                    # Nếu ngày là y-m-d, chuyển đổi sang d-m-y
+                    ymd_date = datetime.strptime(date, "%Y-%m-%d").date()
+                    date = ymd_date.strftime("%d-%m-%Y")
+                    dmy_date = datetime.strptime(date, "%d-%m-%Y").date()
+                except ValueError:
+                    return JSONResponse(
+                        content={"status": 400, "message": "Định dạng ngày không hợp lệ. Vui lòng sử dụng DD-MM-YYYY hoặc YYYY-MM-DD."},
+                        status_code=400,
+                    )
+            model.ngayThem = dmy_date
         # Cập nhật các trường khác nếu có
         if modelName:
             model.tenMoHinh = modelName
