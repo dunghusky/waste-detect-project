@@ -114,34 +114,21 @@ import time
 
 class WebcamStream:
     def __init__(self, stream_id=0):
-        self.stream_id = stream_id  # default is 0 for primary camera
-
-        # opening video capture stream
+        self.stream_id = stream_id
         self.vcap = cv2.VideoCapture(self.stream_id)
         if not self.vcap.isOpened():
             print("[Exiting]: Error accessing webcam stream.")
             exit(0)
-        fps_input_stream = int(self.vcap.get(cv2.CAP_PROP_FPS))
-        print("FPS of webcam hardware/input stream: {}".format(fps_input_stream))
 
-        # reading a single frame from vcap stream for initializing
         self.grabbed, self.frame = self.vcap.read()
         if not self.grabbed:
             print("[Exiting] No more frames to read")
             exit(0)
 
-        # self.stopped is set to False when frames are being read from self.vcap stream
         self.stopped = True
-
-        # reference to the thread for reading next available frame from input stream
         self.t = Thread(target=self.update, args=())
-        self.t.daemon = True  # daemon threads keep running in the background while the program is executing
-
-        # Adding a lock to manage access to the frame
+        self.t.daemon = True
         self.lock = Lock()
-
-        # Flag to indicate if a frame is ready to process
-        self.new_frame_ready = False
 
     def start(self):
         self.stopped = False
@@ -150,33 +137,24 @@ class WebcamStream:
     def update(self):
         while not self.stopped:
             grabbed, frame = self.vcap.read()
-            if not grabbed:  # Nếu không có frame, thoát vòng lặp
+            if not grabbed:
                 print("[Exiting] No more frames to read")
                 self.stopped = True
                 break
 
-            # Bảo vệ dữ liệu khi cập nhật frame
             with self.lock:
-                if not self.new_frame_ready:  # Chỉ cập nhật nếu frame trước đã xử lý xong
-                    self.frame = frame
-                    self.new_frame_ready = True  # Đánh dấu frame mới đã sẵn sàng
+                self.frame = frame  # Chỉ lưu frame mới nhất (loại bỏ frame cũ)
 
         self.vcap.release()
 
     def read(self):
-        """
-        Trả về frame nếu có frame mới, đồng thời đặt `new_frame_ready` về False.
-        """
         with self.lock:
-            if self.new_frame_ready:
-                self.new_frame_ready = False  # Đánh dấu frame đã được sử dụng
-                return self.frame
-            return None  # Không có frame mới
+            return self.frame  # Trả về frame mới nhất
 
     def stop(self):
         self.stopped = True
         if self.t.is_alive():
-            self.t.join()  # Chờ luồng dừng hoàn toàn
+            self.t.join()
 
 
 
