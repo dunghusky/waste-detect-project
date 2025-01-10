@@ -271,9 +271,9 @@ def generate_stream(stream_url):
                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
             
-            elapsed_time = time.time() - start_time
-            wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
-            time.sleep(wait_time)
+            # elapsed_time = time.time() - start_time
+            # wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
+            # time.sleep(wait_time)
             
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
