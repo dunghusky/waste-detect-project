@@ -183,8 +183,6 @@ def generate_stream(stream_url):
 
     try:
         while not state.terminate_flag:
-            if state.terminate_flag:  # Kiểm tra cờ dừng
-                break
 
             start_time = time.time()
             
@@ -194,7 +192,10 @@ def generate_stream(stream_url):
                 # print("Không nhận được khung hình.")
                 # break
                 continue
-
+            
+            if state.terminate_flag:  # Kiểm tra cờ dừng
+                break
+            
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
             # if elapsed_time < 1.0 / fps:
@@ -269,8 +270,10 @@ def generate_stream(stream_url):
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
+            
             elapsed_time = time.time() - start_time
-            wait_time = max(1, int(1000 / fps - elapsed_time * 1000))
+            wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
+            time.sleep(wait_time)
             
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
