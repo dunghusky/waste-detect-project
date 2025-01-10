@@ -24,6 +24,21 @@ def detect_image(img_path, model_path, output_path, conf=0.1, iou=0.5):
     )
     # print("Model: ", model)
     detections = detect_objects(frame, model, conf, iou)
+    # print("\nDetection: ", detections)
+    
+    detection_results = []
+    for xyxy, confidence, class_id, class_name in zip(
+        detections.xyxy, detections.confidence, detections.class_id, detections["class_name"]
+    ):
+        detection_results.append({
+            "x": round(xyxy[0]),
+            "y": round(xyxy[1]),
+            "width": round(xyxy[2] - xyxy[0]),
+            "height": round(xyxy[3] - xyxy[1]),
+            "confidence": round(float(confidence), 3), 
+            "class": class_name,
+            "class_id": int(class_id)
+        })
     
     labels = [
         f"#{class_name} {confidence:.2f}"
@@ -50,4 +65,4 @@ def detect_image(img_path, model_path, output_path, conf=0.1, iou=0.5):
         if os.path.exists(temp_image_path):
             os.remove(temp_image_path)
 
-    return img_url
+    return img_url, detection_results

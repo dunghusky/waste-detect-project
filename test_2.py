@@ -81,8 +81,9 @@ from config import _create_file, _constants
 img = "./file_path/img/Screenshot 2025-01-04 231456.png"
 output = _constants.IMG_PATH
 
-file = detect_image(img, _constants.MODEL_PATH_3, output,)
+file, dete = detect_image(img, _constants.MODEL_PATH_3, output,)
 print("Link: ", file)
+print("\nDetection: ", dete)
 
 # from ultralytics import YOLO
 
