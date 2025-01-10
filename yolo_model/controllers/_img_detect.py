@@ -1,5 +1,6 @@
 import os
 import cv2
+from fastapi import WebSocket
 import supervision as sv
 from ultralytics import YOLO
 import uuid
@@ -66,3 +67,63 @@ def detect_image(img_path, model_path, output_path, conf=0.1, iou=0.5):
             os.remove(temp_image_path)
 
     return img_url, detection_results
+
+
+async def generate_stream_with_detection(video_path, model_path, websocket: WebSocket, conf=0.1, iou=0.5):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise ValueError(f"Không thể mở video từ đường dẫn: {video_path}")
+
+    # Khởi tạo YOLO và annotator
+    (
+        model,
+        box_annatator,
+        lables_annatator,
+        line_counter,
+        line_annotator,
+        byte_tracker,
+    ) = initialize_yolo_and_annotators(model_path, _constants.LINE_START, _constants.LINE_END)
+
+    try:
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            # Dò vật thể
+            detections = detect_objects(frame, model, conf, iou)
+
+            # Gửi JSON qua WebSocket
+            frame_predictions = []
+            for xyxy, confidence, class_id, class_name in zip(
+                detections.xyxy, detections.confidence, detections.class_id, detections["class_name"]
+            ):
+                frame_predictions.append({
+                    "class": class_name,
+                    "confidence": round(float(confidence), 3),
+                    "bbox": {
+                        "x": round(xyxy[0]),
+                        "y": round(xyxy[1]),
+                        "width": round(xyxy[2] - xyxy[0]),
+                        "height": round(xyxy[3] - xyxy[1]),
+                    },
+                    "color": "#00FFCE",  # Ví dụ gán màu cho box
+                })
+
+            await websocket.send_json({"predictions": frame_predictions})
+
+            # Vẽ và mã hóa frame
+            if detections is not None:
+                frame = box_annatator.annotate(detections=detections, scene=frame)
+            _, buffer = cv2.imencode(".jpg", frame)
+            frame_bytes = buffer.tobytes()
+
+            # Truyền MJPEG frame
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            )
+
+            time.sleep(0.03)
+    finally:
+        cap.release()

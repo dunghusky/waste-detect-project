@@ -1,8 +1,8 @@
 import os
 from typing import Union
 import uuid
-from fastapi import APIRouter, Form, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Form, Query, UploadFile, WebSocket
+from fastapi.responses import JSONResponse, StreamingResponse
 
 
 from yolo_model.controllers import _upload_s3, _img_detect
@@ -54,3 +54,35 @@ def send_img(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
             status_code=500,
         )
+        
+
+@router.get("/video_stream")
+def video_stream(video: str, conf: float = 0.1, iou: float = 0.5, path_model: str = Form(...)):
+    if video:
+            # Tạo thư mục tạm nếu chưa tồn tại
+            temp_dir = "./file_path/tmp"
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # Lưu file tạm
+            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{video.filename}"
+            with open(temp_file_path, "wb") as f:
+                f.write(video.file.read())  # Đọc file từ UploadFile
+
+    return StreamingResponse(
+        _img_detect.generate_stream_with_detection(temp_file_path, path_model, conf, iou),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
+
+@router.websocket("/json_predictions")
+async def json_predictions(websocket: WebSocket, video_path: str = Query(...), model_path: str = Query(...)):
+    """
+    Nhận video_path và model_path từ query parameters trong WebSocket URL.
+    """
+    await websocket.accept()
+    try:
+        # Gọi hàm generate_stream_with_detection với các tham số truyền động
+        await _img_detect.generate_stream_with_detection(video_path, model_path, websocket)
+    except Exception as e:
+        await websocket.send_json({"error": str(e)})
+        await websocket.close()
