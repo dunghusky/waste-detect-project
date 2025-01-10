@@ -1,4 +1,5 @@
 import os
+import time
 import cv2
 from fastapi import WebSocket
 import supervision as sv
@@ -69,7 +70,7 @@ def detect_image(img_path, model_path, output_path, conf=0.1, iou=0.5):
     return img_url, detection_results
 
 
-async def generate_stream_with_detection(video_path, model_path, websocket: WebSocket, conf=0.1, iou=0.5):
+def generate_stream_with_detection(video_path, model_path, conf=0.1, iou=0.5):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise ValueError(f"Không thể mở video từ đường dẫn: {video_path}")
@@ -110,7 +111,7 @@ async def generate_stream_with_detection(video_path, model_path, websocket: WebS
                     "color": "#00FFCE",  # Ví dụ gán màu cho box
                 })
 
-            await websocket.send_json({"predictions": frame_predictions})
+            # await websocket.send_json({"predictions": frame_predictions})
 
             # Vẽ và mã hóa frame
             if detections is not None:
