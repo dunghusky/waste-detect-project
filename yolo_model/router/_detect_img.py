@@ -67,7 +67,7 @@ def video_stream(video: str, conf: float = 0.1, iou: float = 0.5, path_model: st
         temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{video.filename}"
         with open(temp_file_path, "wb") as f:
             f.write(video.file.read())  # Đọc file từ UploadFile
-            
+
         link_video = _upload_s3.upload_file_to_s3(temp_file_path)
         video_url = _upload_s3.convert_cloudfront_link(link_video)
 
