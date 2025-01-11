@@ -13,3 +13,5 @@ def map_yolo_to_label(yolo_label):
         "rac-huu-co": 2,  # rac-huu-co
     }
     return yolo_to_category.get(yolo_label, -1)
+
+
