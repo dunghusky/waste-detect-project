@@ -94,22 +94,22 @@ def generate_stream_with_detection(video_path, model_path, conf=0.1, iou=0.5):
             # Dò vật thể
             detections = detect_objects(frame, model, conf, iou)
 
-            # Gửi JSON qua WebSocket
-            frame_predictions = []
-            for xyxy, confidence, class_id, class_name in zip(
-                detections.xyxy, detections.confidence, detections.class_id, detections["class_name"]
-            ):
-                frame_predictions.append({
-                    "class": class_name,
-                    "confidence": round(float(confidence), 3),
-                    "bbox": {
-                        "x": round(xyxy[0]),
-                        "y": round(xyxy[1]),
-                        "width": round(xyxy[2] - xyxy[0]),
-                        "height": round(xyxy[3] - xyxy[1]),
-                    },
-                    "color": "#00FFCE",  # Ví dụ gán màu cho box
-                })
+            # # Gửi JSON qua WebSocket
+            # frame_predictions = []
+            # for xyxy, confidence, class_id, class_name in zip(
+            #     detections.xyxy, detections.confidence, detections.class_id, detections["class_name"]
+            # ):
+            #     frame_predictions.append({
+            #         "class": class_name,
+            #         "confidence": round(float(confidence), 3),
+            #         "bbox": {
+            #             "x": round(xyxy[0]),
+            #             "y": round(xyxy[1]),
+            #             "width": round(xyxy[2] - xyxy[0]),
+            #             "height": round(xyxy[3] - xyxy[1]),
+            #         },
+            #         "color": "#00FFCE",  # Ví dụ gán màu cho box
+            #     })
 
             # await websocket.send_json({"predictions": frame_predictions})
 

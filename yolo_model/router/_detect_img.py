@@ -54,23 +54,25 @@ def send_img(
             content={"status": 500, "message": f"Lỗi hệ thống: {str(e)}"},
             status_code=500,
         )
-        
 
 @router.get("/video_stream")
 def video_stream(video: str, conf: float = 0.1, iou: float = 0.5, path_model: str = Form(...)):
     if video:
-            # Tạo thư mục tạm nếu chưa tồn tại
-            temp_dir = "./file_path/tmp"
-            if not os.path.exists(temp_dir):
-                os.makedirs(temp_dir)
+        # Tạo thư mục tạm nếu chưa tồn tại
+        temp_dir = "./file_path/tmp"
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
 
-            # Lưu file tạm
-            temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{video.filename}"
-            with open(temp_file_path, "wb") as f:
-                f.write(video.file.read())  # Đọc file từ UploadFile
+        # Lưu file tạm
+        temp_file_path = f"{temp_dir}/{uuid.uuid4()}_{video.filename}"
+        with open(temp_file_path, "wb") as f:
+            f.write(video.file.read())  # Đọc file từ UploadFile
+            
+        link_video = _upload_s3.upload_file_to_s3(temp_file_path)
+        video_url = _upload_s3.convert_cloudfront_link(link_video)
 
     return StreamingResponse(
-        _img_detect.generate_stream_with_detection(temp_file_path, path_model, conf, iou),
+        _img_detect.generate_stream_with_detection(video_url, path_model, conf, iou),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
 
