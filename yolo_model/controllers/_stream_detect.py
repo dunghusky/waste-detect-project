@@ -37,6 +37,21 @@ def detect_objects(frame, model, conf=0.1, iou=0.5):
     detections = sv.Detections.from_ultralytics(results)
     return detections
 
+def is_touching_line(bbox, line_start, line_end):
+    """
+    Kiểm tra nếu bất kỳ phần nào của bounding box chạm vào đường line.
+    bbox: [x_min, y_min, x_max, y_max]
+    line_start: Point(x, y)
+    line_end: Point(x, y)
+    """
+    x_min, y_min, x_max, y_max = bbox
+
+    # Kiểm tra nếu đường line nằm trong khoảng x của bbox
+    if line_start.x >= x_min and line_start.x <= x_max:
+        # Kiểm tra nếu bbox giao với đoạn thẳng dọc từ line_start đến line_end
+        if y_max >= line_start.y and y_min <= line_end.y:
+            return True
+    return False
 
 def draw_boxes(frame, detections, box_annotator, lables_annatator):
     """
@@ -63,6 +78,29 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
             detections["class_name"], detections.confidence, detections.tracker_id
         )
     ]
+
+    # Kiểm tra và xử lý nếu bounding box chạm vào line
+    for bbox, class_name, tracker_id in zip(
+        detections.xyxy, detections["class_name"], detections.tracker_id
+    ):
+        if is_touching_line(bbox, _constants.LINE_START, _constants.LINE_END):
+            print("\n###Class_name: ", class_name)
+            print("\n###Tracker_id: ", tracker_id)
+
+            if tracker_id in _constants.COUNTED_IDS:
+                continue  # Bỏ qua nếu tracker_id đã được xử lý
+
+            _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+
+            if class_name in state.waste_count:
+                state.waste_count[class_name] += 1
+                waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+                if waste_label != -1:
+                    print(
+                        f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
+                    )
+                    send_to_hardware_api(waste_label)
+
     frame = box_annotator.annotate(detections=detections, scene=frame)
 
     frame = lables_annatator.annotate(labels=labels, scene=frame, detections=detections)
@@ -136,8 +174,7 @@ def send_to_hardware_api(waste_label):
     except Exception as e:
         print("Lỗi kết nối tới API:", e)
 
-
-# ----------------------------------------------------------------------------#
+#------------------------------------------------------------------------
 def generate_stream(stream_url):
     """
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
@@ -215,45 +252,12 @@ def generate_stream(stream_url):
 
                 line_counter.trigger(detections)
 
-                if line_counter.out_count > prev_out_count:
-                    print("\n line_counter.out_count: ", line_counter.out_count)
-                    for class_name, tracker_id in zip(
-                        detections["class_name"], detections.tracker_id
-                    ):
-                        print("\n###Class_name: ", class_name)
-                        print("\n###Tracker_id: ", tracker_id)
-                        if tracker_id in _constants.COUNTED_IDS:
-                            continue  # Bỏ qua nếu tracker_id đã được xử lý
-                        # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
-                        _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
-                        if class_name in state.waste_count:
-                            print("\n###Class_name: ", class_name)
-                            state.waste_count[class_name] += 1
-                            print("\n###Updated waste_count: ", state.waste_count)
-                            waste_label = map_yolo_to_label.map_yolo_to_label(
-                                class_name
-                            )
-                            print("\nwaste_label: ", waste_label)
-                            if waste_label != -1:
-                                print(
-                                    f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
-                                )
-                                send_to_hardware_api(waste_label)
-                        else:
-                            print("\nKhông có class_id")
-
-                    prev_out_count = line_counter.out_count
-
-                else:
-                    # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
-                    print("Không có đối tượng nào được nhận diện.")
-
             line_annotator.annotate(frame=frame, line_counter=line_counter)
 
-            end_time = time.time()
+            # end_time = time.time()
 
-            latency = end_time - start_time
-            print(f"Độ trễ xử lý: {latency:.3f} giây")
+            # latency = end_time - start_time
+            # print(f"Độ trễ xử lý: {latency:.3f} giây")
 
             video_writer = state.get_video_writer()
             # Trong vòng lặp chính
@@ -288,6 +292,157 @@ def generate_stream(stream_url):
             video_writer.release()
         state.set_video_writer(None)
         state.completed_event.set()  # Báo hiệu đã hoàn tất
+# ----------------------------------------------------------------------------#
+# def generate_stream(stream_url):
+#     """
+#     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
+#     """
+#     args = parse_args()
+#     frame_width, frame_height = args.webcam_resolutions
+
+#     # Mở luồng video
+#     cap, fps = initialize_video_stream(stream_url)
+
+#     # Tạo tên file video với timestamp
+#     state.output_file = _create_file.create_video()
+#     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+#     state.set_video_writer(
+#         cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
+#     )
+
+#     repeat_frames = 3
+
+#     video_writer = state.get_video_writer()
+#     if not video_writer or not video_writer.isOpened():
+#         raise ValueError("VideoWriter không được khởi tạo đúng cách.")
+
+#     # Khởi tạo mô hình YOLO và các công cụ hỗ trợ
+#     (
+#         model,
+#         box_annatator,
+#         lables_annatator,
+#         line_counter,
+#         line_annotator,
+#         byte_tracker,
+#     ) = initialize_yolo_and_annotators(
+#         _constants.MODEL_PATH_3, _constants.LINE_START, _constants.LINE_END
+#     )
+
+#     state.waste_count = deepcopy(_constants.WASTE_COUNT)
+
+#     prev_in_count = 0
+#     prev_out_count = 0
+
+#     # Biến theo dõi FPS thực tế
+#     frame_count = 0
+
+#     try:
+#         while not state.terminate_flag:
+
+#             start_time = time.time()
+            
+#             frame = cap.read()
+
+#             if frame is None:
+#                 # print("Không nhận được khung hình.")
+#                 # break
+#                 continue
+            
+#             if state.terminate_flag:  # Kiểm tra cờ dừng
+#                 break
+            
+#             # # Đợi nếu cần để giữ đồng bộ FPS
+#             # elapsed_time = time.time() - start_time
+#             # if elapsed_time < 1.0 / fps:
+#             #     time.sleep(1.0 / fps - elapsed_time)
+
+#             # Xử lý nhận diện với YOLO
+#             detections = detect_objects(frame, model)
+
+#             # Kiểm tra detections trước khi tiếp tục
+#             if detections is not None and len(detections["class_name"]) > 0:
+#                 # print("\nKiểu dữ liệu: ", detections["class_name"])
+#                 # print("\nLen: ", len(detections["class_name"]))
+#                 detections = byte_tracker.update_with_detections(detections=detections)
+
+#                 # Vẽ kết quả lên khung hình
+#                 frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
+
+#                 line_counter.trigger(detections)
+
+#                 if line_counter.out_count > prev_out_count:
+#                     print("\n line_counter.out_count: ", line_counter.out_count)
+#                     for class_name, tracker_id in zip(
+#                         detections["class_name"], detections.tracker_id
+#                     ):
+#                         print("\n###Class_name: ", class_name)
+#                         print("\n###Tracker_id: ", tracker_id)
+#                         if tracker_id in _constants.COUNTED_IDS:
+#                             continue  # Bỏ qua nếu tracker_id đã được xử lý
+#                         # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
+#                         _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+#                         if class_name in state.waste_count:
+#                             print("\n###Class_name: ", class_name)
+#                             state.waste_count[class_name] += 1
+#                             print("\n###Updated waste_count: ", state.waste_count)
+#                             waste_label = map_yolo_to_label.map_yolo_to_label(
+#                                 class_name
+#                             )
+#                             print("\nwaste_label: ", waste_label)
+#                             if waste_label != -1:
+#                                 print(
+#                                     f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
+#                                 )
+#                                 send_to_hardware_api(waste_label)
+#                         else:
+#                             print("\nKhông có class_id")
+
+#                     prev_out_count = line_counter.out_count
+
+#                 # else:
+#                 #     # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
+#                 #     print("Không có đối tượng nào được nhận diện.")
+
+#             line_annotator.annotate(frame=frame, line_counter=line_counter)
+
+#             # end_time = time.time()
+
+#             # latency = end_time - start_time
+#             # print(f"Độ trễ xử lý: {latency:.3f} giây")
+
+#             video_writer = state.get_video_writer()
+#             # Trong vòng lặp chính
+#             for _ in range(repeat_frames):
+#                 if video_writer is not None:
+#                     video_writer.write(frame)
+
+#             # Mã hóa khung hình sang JPEG
+#             _, buffer = cv2.imencode(".jpg", frame)
+#             frame_bytes = buffer.tobytes()
+
+#             # Truyền dữ liệu MJPEG
+#             yield (
+#                 b"--frame\r\n"
+#                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+#             )
+
+#             elapsed_time = time.time() - start_time
+#             wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
+#             time.sleep(wait_time)
+
+#             if (
+#                 cv2.waitKey(1) == 27 or state.terminate_flag
+#             ):  # Exit when ESC key is pressed or terminate flag is set
+#                 break
+
+#     finally:
+#         if cap is not None:
+#             cap.stop()
+#         video_writer = state.get_video_writer()
+#         if video_writer:
+#             video_writer.release()
+#         state.set_video_writer(None)
+#         state.completed_event.set()  # Báo hiệu đã hoàn tất
 
 
 # Chạy chương trình
