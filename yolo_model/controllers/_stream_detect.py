@@ -194,7 +194,7 @@ def generate_stream(stream_url):
                 # print("Không nhận được khung hình.")
                 # break
                 continue
-            
+
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
             # if elapsed_time < 1.0 / fps:
@@ -215,7 +215,7 @@ def generate_stream(stream_url):
                 line_counter.trigger(detections)
 
                 if line_counter.in_count > prev_in_count:
-                    # print("\n line_counter.out_count: ", line_counter.in_count)
+                    print("\n line_counter.out_count: ", line_counter.in_count)
                     for class_name, tracker_id in zip(
                         detections["class_name"], detections.tracker_id
                     ):
@@ -286,7 +286,7 @@ def generate_stream(stream_url):
         if video_writer:
             video_writer.release()
         state.set_video_writer(None)
-        state.completed_event.set()  # Báo hiệu đã hoàn tất
+        state.completed_event.set()   # Báo hiệu đã hoàn tất
 
 # Chạy chương trình
 # if __name__ == "__main__":
