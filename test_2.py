@@ -75,15 +75,28 @@
 # print(response.text)
 # print("aaaaaaaaaa")
 
-from yolo_model.controllers._img_detect import detect_image, generate_stream_with_detection
+# from yolo_model.controllers._img_detect import detect_image, generate_stream_with_detection
+# from config import _create_file, _constants
+
+# img = "./file_path/img/Screenshot 2025-01-04 231456.png"
+# output = _constants.IMG_PATH
+
+# file, dete = detect_image(img, _constants.MODEL_PATH_3, output)
+# print("Link: ", file)
+# print("\nDetection: ", dete)
+
+from yolo_model.controllers import _stream_detect
 from config import _create_file, _constants
+from supervision import Point
 
-img = "./file_path/img/Screenshot 2025-01-04 231456.png"
-output = _constants.IMG_PATH
+LINE_START = Point(200, 0)
+LINE_END = Point(200, 500)
+# Bounding box
+bbox1 = [190, 100, 210, 200]  # Giao với line tại x=200
+bbox2 = [150, 100, 180, 200]  # Không giao với line # Bounding box
 
-file, dete = detect_image(img, _constants.MODEL_PATH_3, output)
-print("Link: ", file)
-print("\nDetection: ", dete)
+result = _stream_detect.is_touching_line(bbox2, LINE_START, LINE_END)
+print("Có chạm vào line không?", result)
 
 # video = "./output_frames/6779842421098717812.mp4"
 # file= generate_stream_with_detection(video, _constants.MODEL_PATH_3)
