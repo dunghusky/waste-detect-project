@@ -168,36 +168,13 @@ def initialize_video_stream(stream_url: str):
 # ----------------------------------------------------------------------------#
 
 
-# def send_to_hardware_api(waste_label):
-#     url = "http://35.91.130.206:8088/api/v1/stream/send-label"
-#     payload = {"label": waste_label}
-#     try:
-#         response = requests.post(url, json=payload)
-#         if response.status_code == 200:
-#             print("Gửi nhãn thành công:", waste_label)
-#         else:
-#             print("Lỗi khi gửi nhãn:", response.status_code, response.text)
-#     except Exception as e:
-#         print("Lỗi kết nối tới API:", e)
-
 def send_to_hardware_api(waste_label):
-    """
-    Gửi nhãn đến phần cứng trong định dạng mong muốn.
-    - waste_label: Nhãn mới cần gửi.
-    """
-    global CURRENT_LABELS  # Sử dụng biến toàn cục để lưu danh sách
     url = "http://35.91.130.206:8088/api/v1/stream/send-label"
-
-    # Chèn nhãn mới vào đầu danh sách
-    CURRENT_LABELS.insert(0, waste_label)
-
-    # Payload với định dạng mong muốn
-    payload = {"received_labels": CURRENT_LABELS}
-
+    payload = {"label": waste_label}
     try:
         response = requests.post(url, json=payload)
         if response.status_code == 200:
-            print("Gửi nhãn thành công:", payload)
+            print("Gửi nhãn thành công:", waste_label)
         else:
             print("Lỗi khi gửi nhãn:", response.status_code, response.text)
     except Exception as e:
