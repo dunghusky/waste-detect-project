@@ -81,12 +81,12 @@ from config import _create_file, _constants
 img = "./file_path/img/Screenshot 2025-01-04 231456.png"
 output = _constants.IMG_PATH
 
-# file, dete = detect_image(img, _constants.MODEL_PATH_3, output,)
-# print("Link: ", file)
-# print("\nDetection: ", dete)
+file, dete = detect_image(img, _constants.MODEL_PATH_3, output)
+print("Link: ", file)
+print("\nDetection: ", dete)
 
-video = "./output_frames/6779842421098717812.mp4"
-file= generate_stream_with_detection(video, _constants.MODEL_PATH_3)
+# video = "./output_frames/6779842421098717812.mp4"
+# file= generate_stream_with_detection(video, _constants.MODEL_PATH_3)
 # print("Link: ", file)
 
 # from ultralytics import YOLO
