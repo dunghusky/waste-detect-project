@@ -76,7 +76,7 @@ def initialize_yolo_and_annotators(
     """
     Khởi tạo mô hình YOLO và các annotator.
     """
-    device = "cuda:2" if torch.cuda.is_available() else "cpu"
+    device = "cuda:1" if torch.cuda.is_available() else "cpu"
     print("Thiết bị đang được sử dụng:", device)
     
     model = YOLO(model_path).to(device)
