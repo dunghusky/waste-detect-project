@@ -155,7 +155,6 @@ def is_touching_line(bbox, line_start, line_end):
             return True
     return False
 
-
 def generate_stream(stream_url):
     """
     Hàm chính để thực hiện nhận diện trên webcam và hiển thị kết quả.
@@ -173,7 +172,7 @@ def generate_stream(stream_url):
         cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
     )
 
-    repeat_frames = 2
+    repeat_frames = 3
 
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
@@ -220,7 +219,7 @@ def generate_stream(stream_url):
             detections = detect_objects(frame, model)
 
             # Kiểm tra detections trước khi tiếp tục
-            if detections is not None and len(detections.xyxy) > 0 and detections["class_name"] is not None:
+            if detections is not None and len(detections["class_name"]) > 0 and  len(detections.xyxy) > 0:
                 # print("\nKiểu dữ liệu: ", detections["class_name"])
                 # print("\nLen: ", len(detections["class_name"]))
                 detections = byte_tracker.update_with_detections(detections=detections)
@@ -228,32 +227,27 @@ def generate_stream(stream_url):
                 # Vẽ kết quả lên khung hình
                 frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
 
-                line_counter.trigger(detections)
-
-                for xyxy, class_name, tracker_id  in zip(
+                for bbox, class_name, tracker_id in zip(
                     detections.xyxy, detections["class_name"], detections.tracker_id
                 ):
-                    print("\n###Class_name: ", class_name)
-                    print("\n###Tracker_id: ", tracker_id)
-                    print("\n###xyxy: ", xyxy)
-                    if tracker_id in _constants.COUNTED_IDS:
-                        continue  # Bỏ qua nếu tracker_id đã được xử lý
-                    # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
-                    _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
-                    
-                    if is_touching_line(xyxy, _constants.LINE_START, _constants.LINE_END):
-                        _constants.COUNTED_IDS.add(tracker_id)
+                    # Kiểm tra nếu bounding box chạm vào line
+                    if is_touching_line(bbox, _constants.LINE_START, _constants.LINE_END):
+                        print("\n###Class_name: ", class_name)
+                        print("\n###Tracker_id: ", tracker_id)
+
+                        if tracker_id in _constants.COUNTED_IDS:
+                            continue  # Bỏ qua nếu tracker_id đã được xử lý
+
+                        _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+
                         if class_name in state.waste_count:
                             state.waste_count[class_name] += 1
                             waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
                             if waste_label != -1:
-                                print(f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}")
+                                print(
+                                    f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
+                                )
                                 send_to_hardware_api(waste_label)
-                        else:
-                            print("\nKhông có class_id")
-            else:
-                # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
-                print("Không có đối tượng nào được nhận diện.")
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
 
@@ -294,7 +288,8 @@ def generate_stream(stream_url):
         if video_writer:
             video_writer.release()
         state.set_video_writer(None)
-        state.completed_event.set() 
+        state.completed_event.set()  # Báo hiệu đã hoàn tất
+
 # ---------------------------------------------------------------------------#
 # def generate_stream(stream_url):
 #     """
