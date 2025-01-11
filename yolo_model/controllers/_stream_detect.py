@@ -14,6 +14,7 @@ from yolo_model.manage.WebcamStream import WebcamStream
 from config import _create_file, _constants
 from yolo_model.controllers._upload_s3 import convert_video_to_mp4 as convert_mp4
 
+CURRENT_LABELS = []
 
 def parse_args() -> argparse.Namespace:
     parse = argparse.ArgumentParser(description="Yolov8 live camera")
@@ -72,17 +73,22 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
         print("Không có đối tượng để vẽ.")
         return frame  # Trả về khung hình gốc
 
-    labels = [
-        f"#{tracker_id} {class_name} {confidence:.2f}"
-        for class_name, confidence, tracker_id in zip(
-            detections["class_name"], detections.confidence, detections.tracker_id
-        )
-    ]
+    # labels = [
+    #     f"#{tracker_id} {class_name} " #{confidence:.2f}
+    #     for class_name, tracker_id in zip( #, confidence
+    #         detections["class_name"], detections.tracker_id #detections.confidence,
+    #     )
+    # ]
+    
+    labels = []
 
     # Kiểm tra và xử lý nếu bounding box chạm vào line
     for bbox, class_name, tracker_id in zip(
         detections.xyxy, detections["class_name"], detections.tracker_id
     ):
+        # Tạo label cho đối tượng
+        labels.append(f"#{tracker_id} {class_name}")
+        
         if is_touching_line(bbox, _constants.LINE_START, _constants.LINE_END):
             print("\n###Class_name: ", class_name)
             print("\n###Tracker_id: ", tracker_id)
@@ -162,13 +168,36 @@ def initialize_video_stream(stream_url: str):
 # ----------------------------------------------------------------------------#
 
 
+# def send_to_hardware_api(waste_label):
+#     url = "http://35.91.130.206:8088/api/v1/stream/send-label"
+#     payload = {"label": waste_label}
+#     try:
+#         response = requests.post(url, json=payload)
+#         if response.status_code == 200:
+#             print("Gửi nhãn thành công:", waste_label)
+#         else:
+#             print("Lỗi khi gửi nhãn:", response.status_code, response.text)
+#     except Exception as e:
+#         print("Lỗi kết nối tới API:", e)
+
 def send_to_hardware_api(waste_label):
+    """
+    Gửi nhãn đến phần cứng trong định dạng mong muốn.
+    - waste_label: Nhãn mới cần gửi.
+    """
+    global CURRENT_LABELS  # Sử dụng biến toàn cục để lưu danh sách
     url = "http://35.91.130.206:8088/api/v1/stream/send-label"
-    payload = {"label": waste_label}
+
+    # Chèn nhãn mới vào đầu danh sách
+    CURRENT_LABELS.insert(0, waste_label)
+
+    # Payload với định dạng mong muốn
+    payload = {"received_labels": CURRENT_LABELS}
+
     try:
         response = requests.post(url, json=payload)
         if response.status_code == 200:
-            print("Gửi nhãn thành công:", waste_label)
+            print("Gửi nhãn thành công:", payload)
         else:
             print("Lỗi khi gửi nhãn:", response.status_code, response.text)
     except Exception as e:
