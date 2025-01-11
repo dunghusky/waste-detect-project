@@ -184,6 +184,9 @@ def generate_stream(stream_url):
     try:
         while not state.terminate_flag:
 
+            if state.terminate_flag:  # Kiểm tra cờ dừng
+                break
+
             start_time = time.time()
             
             frame = cap.read()
@@ -192,9 +195,6 @@ def generate_stream(stream_url):
                 # print("Không nhận được khung hình.")
                 # break
                 continue
-            
-            if state.terminate_flag:  # Kiểm tra cờ dừng
-                break
             
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
@@ -210,42 +210,35 @@ def generate_stream(stream_url):
                 # print("\nLen: ", len(detections["class_name"]))
                 detections = byte_tracker.update_with_detections(detections=detections)
 
+                # Xử lý từng đối tượng được nhận diện
+                for class_name, tracker_id in zip(
+                    detections["class_name"], detections.tracker_id
+                ):
+                    if tracker_id not in _constants.COUNTED_IDS:
+                        _constants.COUNTED_IDS.add(tracker_id)  # Gán tracker_id là đã xử lý
+                        waste_label = map_yolo_to_label.map_yolo_to_label(class_name)
+
+                        if waste_label != -1:
+                            print(
+                                f"Gửi nhãn: {class_name} (Tracker ID: {tracker_id}), Nhãn phân loại: {waste_label}"
+                            )
+                            send_to_hardware_api(waste_label)
+
                 # Vẽ kết quả lên khung hình
                 frame = draw_boxes(frame, detections, box_annatator, lables_annatator)
 
                 line_counter.trigger(detections)
 
                 if line_counter.in_count > prev_in_count:
-                    print("\n line_counter.out_count: ", line_counter.in_count)
-                    for class_name, tracker_id in zip(
-                        detections["class_name"], detections.tracker_id
-                    ):
-                        print("\n###Class_name: ", class_name)
-                        print("\n###Tracker_id: ", tracker_id)
-                        if tracker_id in _constants.COUNTED_IDS:
-                            continue  # Bỏ qua nếu tracker_id đã được xử lý
-                        # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
-                        _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
-                        if class_name in state.waste_count:
-                            print("\n###Class_name: ", class_name)
-                            state.waste_count[class_name] += 1
-                            print("\n###Updated waste_count: ", state.waste_count)
-                            waste_label = map_yolo_to_label.map_yolo_to_label(
-                                class_name
-                            )
-                            print("\nwaste_label: ", waste_label)
-                            if waste_label != -1:
+                    if line_counter.in_count > prev_in_count:
+                        for class_name in detections["class_name"]:
+                            if class_name in state.waste_count:
+                                state.waste_count[class_name] += 1
                                 print(
-                                    f"Nhận diện: {class_name}, Nhãn phân loại: {waste_label}"
+                                    f"Cập nhật số lượng: {class_name} -> {state.waste_count[class_name]}"
                                 )
-                                send_to_hardware_api(waste_label)
-                        else:
-                            print("\nKhông có class_id")
-
-                    prev_in_count = line_counter.in_count
-
+                        prev_in_count = line_counter.in_count
                 else:
-                    # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
                     print("Không có đối tượng nào được nhận diện.")
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
