@@ -251,9 +251,9 @@ def generate_stream(stream_url):
                                 send_to_hardware_api(waste_label)
                         else:
                             print("\nKhông có class_id")
-                    else:
-                        # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
-                        print("Không có đối tượng nào được nhận diện.")
+            else:
+                # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
+                print("Không có đối tượng nào được nhận diện.")
 
             line_annotator.annotate(frame=frame, line_counter=line_counter)
 
