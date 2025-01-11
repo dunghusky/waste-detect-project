@@ -1,6 +1,7 @@
 from copy import deepcopy
 import time
 import cv2
+import numpy as np
 import requests
 import argparse
 import torch
@@ -140,19 +141,17 @@ def send_to_hardware_api(waste_label):
 # ----------------------------------------------------------------------------#
 def is_touching_line(bbox, line_start, line_end):
     """
-    Kiểm tra nếu bất kỳ điểm nào của bounding box chạm vào đường line.
+    Kiểm tra nếu bất kỳ phần nào của bounding box chạm vào đường line.
     bbox: [x_min, y_min, x_max, y_max]
-    line_start: (x1, y1)
-    line_end: (x2, y2)
+    line_start: Point(x, y)
+    line_end: Point(x, y)
     """
     x_min, y_min, x_max, y_max = bbox
 
-    # Các góc của bounding box
-    corners = [(x_min, y_min), (x_max, y_min), (x_min, y_max), (x_max, y_max)]
-
-    # Kiểm tra va chạm
-    for corner in corners:
-        if cv2.pointPolygonTest([line_start, line_end], corner, False) >= 0:
+    # Kiểm tra nếu đường line nằm trong khoảng x của bbox
+    if line_start.x >= x_min and line_start.x <= x_max:
+        # Kiểm tra nếu bbox giao với đoạn thẳng dọc từ line_start đến line_end
+        if y_max >= line_start.y and y_min <= line_end.y:
             return True
     return False
 
@@ -174,7 +173,7 @@ def generate_stream(stream_url):
         cv2.VideoWriter(state.output_file, fourcc, 26.0, (frame_width, frame_height))
     )
 
-    repeat_frames = 3
+    repeat_frames = 2
 
     video_writer = state.get_video_writer()
     if not video_writer or not video_writer.isOpened():
@@ -241,6 +240,7 @@ def generate_stream(stream_url):
                         continue  # Bỏ qua nếu tracker_id đã được xử lý
                     # if tracker_id not in _constants.COUNTED_IDS:  # Nếu đối tượng chưa được đếm
                     _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+                    
                     if is_touching_line(xyxy, _constants.LINE_START, _constants.LINE_END):
                         _constants.COUNTED_IDS.add(tracker_id)
                         if class_name in state.waste_count:
