@@ -220,7 +220,7 @@ def generate_stream(stream_url):
             detections = detect_objects(frame, model)
 
             # Kiểm tra detections trước khi tiếp tục
-            if detections is not None and len(detections["class_name"]) > 0:
+            if detections is not None and len(detections.xyxy) > 0 and detections["class_name"] is not None:
                 # print("\nKiểu dữ liệu: ", detections["class_name"])
                 # print("\nLen: ", len(detections["class_name"]))
                 detections = byte_tracker.update_with_detections(detections=detections)
