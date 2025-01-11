@@ -1,5 +1,6 @@
 # Bỏ qua các thư mục checkpoints và runs chỉ trong thư mục train_data
 train_data/checkpoints/
+yolo_model/checkpoints
 train_data/runs/
 
 # Bỏ qua tất cả các file .pt trong thư mục train_data
@@ -21,3 +22,11 @@ data/phan-loai-rac-old
 train_data/connect_webcam/runs
 
 train_data/connect_webcam/*.pt
+
+.env
+
+file_path
+
+train
+train_p2
+train_p3
