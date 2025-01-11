@@ -92,9 +92,9 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
         labels.append(f"#{tracker_id} {class_name}")
 
         if is_touching_line(bbox, _constants.LINE_START, _constants.LINE_END):
-            print(f"Chạm line: Object {class_name}, Tracker ID: {tracker_id}")
-            print("\n###Class_name: ", class_name)
-            print("\n###Tracker_id: ", tracker_id)
+            # print(f"Chạm line: Object {class_name}, Tracker ID: {tracker_id}")
+            # print("\n###Class_name: ", class_name)
+            # print("\n###Tracker_id: ", tracker_id)
 
             if (class_name, tracker_id) in _constants.COUNTED_IDS:
                 continue  # Bỏ qua nếu đã xử lý đối tượng này
@@ -132,7 +132,7 @@ def initialize_yolo_and_annotators(
     box_annotator = sv.BoxAnnotator(thickness=2)
     label_annotator = sv.LabelAnnotator(text_thickness=4, text_scale=1)
     line_counter = sv.LineZone(start=LINE_START, end=LINE_END)
-    line_annotator = sv.LineZoneAnnotator(thickness=2, text_thickness=2, text_scale=2)
+    line_annotator = sv.LineZoneAnnotator(thickness=2, text_thickness=0, text_scale=0)
     byte_tracker = sv.ByteTrack()
     return (
         model,
@@ -237,12 +237,11 @@ def generate_stream(stream_url):
 
             if frame is None:
                 # print("Không nhận được khung hình.")
-                # break
                 continue
-            
+
             if state.terminate_flag:  # Kiểm tra cờ dừng
                 break
-            
+
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
             # if elapsed_time < 1.0 / fps:
@@ -285,9 +284,9 @@ def generate_stream(stream_url):
                 b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
             )
 
-            elapsed_time = time.time() - start_time
-            wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
-            time.sleep(wait_time)
+            # elapsed_time = time.time() - start_time
+            # wait_time = max(0, 1.0 / fps - elapsed_time)  # Đồng bộ hóa với FPS
+            # time.sleep(wait_time)
 
             if (
                 cv2.waitKey(1) == 27 or state.terminate_flag
