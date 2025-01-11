@@ -183,9 +183,7 @@ def generate_stream(stream_url):
 
     try:
         while not state.terminate_flag:
-            if state.terminate_flag:  # Kiểm tra cờ dừng
-                break
-            
+
             start_time = time.time()
             
             frame = cap.read()
@@ -194,7 +192,10 @@ def generate_stream(stream_url):
                 # print("Không nhận được khung hình.")
                 # break
                 continue
-
+            
+            if state.terminate_flag:  # Kiểm tra cờ dừng
+                break
+            
             # # Đợi nếu cần để giữ đồng bộ FPS
             # elapsed_time = time.time() - start_time
             # if elapsed_time < 1.0 / fps:
@@ -286,7 +287,7 @@ def generate_stream(stream_url):
         if video_writer:
             video_writer.release()
         state.set_video_writer(None)
-        state.completed_event.set()   # Báo hiệu đã hoàn tất
+        state.completed_event.set()  # Báo hiệu đã hoàn tất
 
 # Chạy chương trình
 # if __name__ == "__main__":
