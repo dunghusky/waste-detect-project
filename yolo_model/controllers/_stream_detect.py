@@ -176,7 +176,7 @@ def generate_stream(stream_url):
     state.waste_count = deepcopy(_constants.WASTE_COUNT)
 
     prev_in_count = 0
-    # prev_out_count = 0
+    prev_out_count = 0
 
     # Biến theo dõi FPS thực tế
     frame_count = 0
@@ -215,8 +215,8 @@ def generate_stream(stream_url):
 
                 line_counter.trigger(detections)
 
-                if line_counter.in_count > prev_in_count:
-                    print("\n line_counter.out_count: ", line_counter.in_count)
+                if line_counter.out_count > prev_out_count:
+                    print("\n line_counter.out_count: ", line_counter.out_count)
                     for class_name, tracker_id in zip(
                         detections["class_name"], detections.tracker_id
                     ):
@@ -242,7 +242,7 @@ def generate_stream(stream_url):
                         else:
                             print("\nKhông có class_id")
 
-                    prev_in_count = line_counter.in_count
+                    prev_out_count = line_counter.out_count
 
                 else:
                     # Nếu không có đối tượng, tiếp tục pipeline nhưng không cập nhật detections
@@ -288,6 +288,7 @@ def generate_stream(stream_url):
             video_writer.release()
         state.set_video_writer(None)
         state.completed_event.set()  # Báo hiệu đã hoàn tất
+
 
 # Chạy chương trình
 # if __name__ == "__main__":
