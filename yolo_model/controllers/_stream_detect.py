@@ -96,10 +96,11 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
             print("\n###Class_name: ", class_name)
             print("\n###Tracker_id: ", tracker_id)
 
-            if tracker_id in _constants.COUNTED_IDS:
-                continue  # Bỏ qua nếu tracker_id đã được xử lý
+            if (class_name, tracker_id) in _constants.COUNTED_IDS:
+                continue  # Bỏ qua nếu đã xử lý đối tượng này
 
-            _constants.COUNTED_IDS.add(tracker_id)  # Lưu tracker_id
+            # Lưu thông tin đối tượng đã xử lý
+            _constants.COUNTED_IDS.add((class_name, tracker_id))
 
             if class_name in state.waste_count:
                 state.waste_count[class_name] += 1
