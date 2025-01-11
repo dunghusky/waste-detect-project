@@ -40,19 +40,21 @@ def detect_objects(frame, model, conf=0.1, iou=0.5):
 
 def is_touching_line(bbox, line_start, line_end):
     """
-    Kiểm tra nếu bất kỳ phần nào của bounding box chạm vào đường line.
+    Kiểm tra nếu bounding box chạm vào đường line.
     bbox: [x_min, y_min, x_max, y_max]
     line_start: Point(x, y)
     line_end: Point(x, y)
     """
     x_min, y_min, x_max, y_max = bbox
 
-    # Kiểm tra nếu đường line nằm trong khoảng x của bbox
-    if line_start.x >= x_min and line_start.x <= x_max:
-        # Kiểm tra nếu bbox giao với đoạn thẳng dọc từ line_start đến line_end
-        if y_max >= line_start.y and y_min <= line_end.y:
-            return True
-    return False
+    # Kiểm tra nếu line nằm giữa khoảng x của bounding box
+    x_intersects = line_start.x >= x_min and line_start.x <= x_max
+
+    # Kiểm tra nếu khoảng y của bounding box giao với khoảng y của line
+    y_intersects = y_min <= line_end.y and y_max >= line_start.y
+
+    # Chỉ cần cả hai điều kiện đều đúng
+    return x_intersects and y_intersects
 
 def draw_boxes(frame, detections, box_annotator, lables_annatator):
     """
@@ -79,7 +81,7 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     #         detections["class_name"], detections.tracker_id #detections.confidence,
     #     )
     # ]
-    
+
     labels = []
 
     # Kiểm tra và xử lý nếu bounding box chạm vào line
@@ -88,8 +90,9 @@ def draw_boxes(frame, detections, box_annotator, lables_annatator):
     ):
         # Tạo label cho đối tượng
         labels.append(f"#{tracker_id} {class_name}")
-        
+
         if is_touching_line(bbox, _constants.LINE_START, _constants.LINE_END):
+            print(f"Chạm line: Object {class_name}, Tracker ID: {tracker_id}")
             print("\n###Class_name: ", class_name)
             print("\n###Tracker_id: ", tracker_id)
 
