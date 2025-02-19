@@ -147,11 +147,16 @@ def stop():
 
 @router.post("/send-label")
 async def send_label(waste_label: WasteLabel):
-    received_labels.append(waste_label)
-    # Xử lý gửi nhãn ở đây, ví dụ log hoặc tích hợp với phần cứng
-    print(
-        f"Received label: {waste_label.label}"
-    )
+    """
+    API nhận nhãn mới và chèn vào đầu danh sách
+    """
+    # Chèn nhãn mới vào đầu danh sách
+    received_labels.insert(0, waste_label.label)
+
+    # Log để kiểm tra
+    print(f"Received label: {waste_label.label}")
+    print(f"Updated received_labels: {received_labels}")
+
     return {"message": "Label received successfully"}
 
 
